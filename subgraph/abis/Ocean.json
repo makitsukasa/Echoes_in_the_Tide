@@ -1,0 +1,80 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_bottle", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "BottleClaimed",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "claimer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "BottleMinted",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "tokenURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "bottle",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "contract Bottle" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "claim",
+    "type": "function",
+    "inputs": [
+      { "name": "tokenId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "name": "mintAndAssign",
+    "type": "function",
+    "inputs": [
+      { "name": "tokenURI", "type": "string", "internalType": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  }
+]

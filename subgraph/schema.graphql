@@ -1,0 +1,18 @@
+type BottleClaimed @entity(immutable: true) {
+  id: Bytes!
+  claimer: Bytes! # address
+  tokenId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BottleMinted @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes! # address
+  tokenId: BigInt! # uint256
+  tokenURI: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

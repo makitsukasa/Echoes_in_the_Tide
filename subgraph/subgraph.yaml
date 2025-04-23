@@ -1,0 +1,29 @@
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Ocean
+    network: polygon-amoy
+    source:
+      address: "0xe485AA85E4745626e917cEFEeD7dDCEEdb1eb2F5"
+      abi: Ocean
+      startBlock: 20827227
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - BottleClaimed
+        - BottleMinted
+      abis:
+        - name: Ocean
+          file: ./abis/Ocean.json
+      eventHandlers:
+        - event: BottleClaimed(indexed address,uint256)
+          handler: handleBottleClaimed
+        - event: BottleMinted(indexed address,uint256,string)
+          handler: handleBottleMinted
+      file: ./src/ocean.ts

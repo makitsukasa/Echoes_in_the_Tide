@@ -10,7 +10,7 @@ contract MintScript is Script {
 		uint256 userPrivateKey = vm.envUint("PRIVATE_KEY");
 
 		// 事前にデプロイされたOceanコントラクトのアドレスを入力
-		address oceanAddress = 0xf4d6a4610095f29C7303305a7D2a031Af0cEF835;
+		address oceanAddress = 0xe485AA85E4745626e917cEFEeD7dDCEEdb1eb2F5;
 
 		// アップロード済みのmetadata URI
 		string memory tokenURI = "ipfs://bafybeifjox2ei7u5wn36b3vynjoj5fbjlht5xchdakuolac6kv2bktj4ye/0.json";
