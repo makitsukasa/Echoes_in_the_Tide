@@ -10,7 +10,7 @@ contract ClaimScript is Script {
         uint256 userPrivateKey = vm.envUint("PRIVATE_KEY");
 
         // 既にデプロイされたOceanコントラクトのアドレス
-        address oceanAddress = 0xe485AA85E4745626e917cEFEeD7dDCEEdb1eb2F5;
+        address oceanAddress = 0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422;
 
         // 拾いたい tokenId（mintAndAssign 後に Ocean が所有している tokenId）
         uint256 tokenId = 0; // 必要に応じて変更

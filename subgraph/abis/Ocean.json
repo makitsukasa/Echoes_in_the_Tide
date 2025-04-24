@@ -2,13 +2,56 @@
   {
     "type": "constructor",
     "inputs": [
-      { "name": "_bottle", "type": "address", "internalType": "address" }
+      {
+        "name": "_bottle",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
     "stateMutability": "nonpayable"
   },
   {
-    "name": "BottleClaimed",
+    "type": "function",
+    "name": "bottle",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract Bottle"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claim",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "mintAndAssign",
+    "inputs": [
+      {
+        "name": "tokenURI",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
     "type": "event",
+    "name": "BottleClaimed",
     "inputs": [
       {
         "name": "claimer",
@@ -19,15 +62,15 @@
       {
         "name": "tokenId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       }
     ],
     "anonymous": false
   },
   {
-    "name": "BottleMinted",
     "type": "event",
+    "name": "BottleMinted",
     "inputs": [
       {
         "name": "sender",
@@ -38,7 +81,7 @@
       {
         "name": "tokenId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       },
       {
@@ -49,32 +92,5 @@
       }
     ],
     "anonymous": false
-  },
-  {
-    "name": "bottle",
-    "type": "function",
-    "inputs": [],
-    "outputs": [
-      { "name": "", "type": "address", "internalType": "contract Bottle" }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "name": "claim",
-    "type": "function",
-    "inputs": [
-      { "name": "tokenId", "type": "uint256", "internalType": "uint256" }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "name": "mintAndAssign",
-    "type": "function",
-    "inputs": [
-      { "name": "tokenURI", "type": "string", "internalType": "string" }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
   }
 ]

@@ -8,7 +8,7 @@ dataSources:
     name: Ocean
     network: polygon-amoy
     source:
-      address: "0xe485AA85E4745626e917cEFEeD7dDCEEdb1eb2F5"
+      address: "0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422"
       abi: Ocean
       startBlock: 20827227
     mapping:
@@ -22,8 +22,8 @@ dataSources:
         - name: Ocean
           file: ./abis/Ocean.json
       eventHandlers:
-        - event: BottleClaimed(indexed address,uint256)
-          handler: handleBottleClaimed
-        - event: BottleMinted(indexed address,uint256,string)
+        - event: BottleMinted(indexed address,indexed uint256,string)
           handler: handleBottleMinted
+        - event: BottleClaimed(indexed address,indexed uint256)
+          handler: handleBottleClaimed
       file: ./src/ocean.ts

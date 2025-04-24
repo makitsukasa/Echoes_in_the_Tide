@@ -6,8 +6,8 @@ import "./Bottle.sol";
 contract Ocean {
 	Bottle public bottle;
 
-	event BottleMinted(address indexed sender, uint256 tokenId, string tokenURI);
-	event BottleClaimed(address indexed claimer, uint256 tokenId);
+	event BottleMinted(address indexed sender, uint256 indexed tokenId, string tokenURI);
+	event BottleClaimed(address indexed claimer, uint256 indexed tokenId);
 
 	constructor(address _bottle) {
 		bottle = Bottle(_bottle);

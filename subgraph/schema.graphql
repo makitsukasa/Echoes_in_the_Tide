@@ -16,3 +16,9 @@ type BottleMinted @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type DriftingBottle @entity(immutable: false) {
+  id: Bytes! # tokenId
+  owner: Bytes!
+  tokenURI: String!
+}
