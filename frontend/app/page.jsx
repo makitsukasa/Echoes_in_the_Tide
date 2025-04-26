@@ -37,10 +37,9 @@ export default function Home() {
     }
   };
 
-  const handleBottleClick = async (tokenURI) => {
+  const handleBottleClick = async (name, description, image) => {
     try {
-      const response = await axios.get(tokenURI);
-      setSelectedBottle(response.data);
+      setSelectedBottle({name, description, image});
     } catch (error) {
       console.error("データ取得に失敗しました:", error);
     }
@@ -55,14 +54,16 @@ export default function Home() {
           <Button
             key={bottle.id}
             id={bottle.id}
-            tokenURI={bottle.tokenURI}
+            name={bottle.name}
+            description={bottle.description}
+            image={bottle.image}
             onClick={handleBottleClick}
           />
         ))}
       </div>
 
       {walletAddress ? (
-        <p>ウォレットアドレス: {walletAddress}</p>
+        <p>ウォレット接続済み: {walletAddress}</p>
       ) : (
         <button onClick={handleWalletConnect}>ウォレット接続</button>
       )}

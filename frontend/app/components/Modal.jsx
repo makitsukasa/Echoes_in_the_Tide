@@ -1,11 +1,21 @@
 export default function Modal({ data, onClose }) {
 	if (!data) return null;
+
 	return (
 	  <div className="modal">
 		<div className="modal-content">
 		  <button className="close-btn" onClick={onClose}>×</button>
-		  <pre>{JSON.stringify(data, null, 2)}</pre>
+		  <h2>{data.name}</h2>
+		  <p>{data.description}</p>
+		  {data.image && (
+			<img
+			  src={data.image}
+			  alt={data.name}
+			  style={{ maxWidth: "100%", height: "auto", borderRadius: "0.5rem", marginTop: "1rem" }}
+			/>
+		  )}
 		</div>
+
 		<style jsx>{`
 		  .modal {
 			position: fixed;
@@ -26,6 +36,7 @@ export default function Modal({ data, onClose }) {
 			max-height: 80%;
 			overflow: auto;
 			position: relative;
+			text-align: center;
 		  }
 		  .close-btn {
 			position: absolute;

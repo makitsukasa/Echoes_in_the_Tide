@@ -1,6 +1,6 @@
-export default function Button({ id, tokenURI, onClick }) {
+export default function Button({ id, name, description, image, onClick }) {
 	return (
-	  <button className="btn" onClick={() => onClick(tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/"))}>
+	  <button className="btn" onClick={() => onClick(name, description, image)}>
 		{id}
 	  </button>
 	);
