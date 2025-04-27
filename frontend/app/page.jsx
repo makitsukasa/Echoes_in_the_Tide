@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Button from './components/Button';
 import BottleDetailModal from './components/BottleDetailModal';
 import ThrowBottleModal from './components/ThrowBottleModal';
-import { fetchBottles } from './components/FetchBottles';
+import { fetchBottles } from './lib/fetchBottles';
 import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle } from './lib/callcontracts';
 import { uploadToIPFS } from './lib/pinata';
 
