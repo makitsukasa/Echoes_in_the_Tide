@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Button from './components/Button';
-import Modal from './components/Modal';
+import BottleDetailModal from './components/BottleDetailModal';
 import ThrowBottleModal from './components/ThrowBottleModal';
 import { fetchBottles } from './components/FetchBottles';
 import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle } from './lib/callcontracts';
@@ -29,9 +29,10 @@ export default function Home() {
     }
   };
 
-  const handleBottleClick = async (name, description, image) => {
+  const handleBottleClick = async (bottle) => {
     try {
-      setSelectedBottle({name, description, image});
+      console.log('Selected bottle:', bottle); // デバッグ用
+      setSelectedBottle(bottle);
     } catch (error) {
       console.error("データ取得に失敗しました:", error);
     }
@@ -49,6 +50,19 @@ export default function Home() {
     }
   };
 
+  const handleClaimBottle = async (tokenId) => {
+    try {
+      console.log('Claiming bottle with tokenId:', tokenId); // デバッグ用
+      await claimBottle(tokenId);
+      // ボトルリストを更新
+      const data = await fetchBottles();
+      setBottles(data);
+      setSelectedBottle(null); // モーダルを閉じる
+    } catch (error) {
+      console.error("ボトルの取得に失敗しました:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-2xl font-bold mb-8 text-center">放置ゲーム - Drift Bottles</h1>
@@ -61,7 +75,7 @@ export default function Home() {
             name={bottle.name}
             description={bottle.description}
             image={bottle.image}
-            onClick={handleBottleClick}
+            onClick={() => handleBottleClick(bottle)}
           />
         ))}
       </div>
@@ -85,7 +99,11 @@ export default function Home() {
         </button>
       )}
 
-      <Modal data={selectedBottle} onClose={() => setSelectedBottle(null)} />
+      <BottleDetailModal
+        data={selectedBottle}
+        onClose={() => setSelectedBottle(null)}
+        onClaim={handleClaimBottle}
+      />
       <ThrowBottleModal
         isOpen={isThrowModalOpen}
         onClose={() => setIsThrowModalOpen(false)}

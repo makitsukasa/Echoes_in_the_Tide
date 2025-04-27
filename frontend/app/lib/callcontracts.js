@@ -125,31 +125,38 @@ export async function mintAndAssignToOcean(tokenURI) {
 // Oceanコントラクトのclaimを実行する
 export async function claimBottle(tokenId) {
   try {
-    if (!signer) {
-      const connected = await connectWallet();
-      if (!connected) return;
+    if (!window.ethereum) {
+      throw new Error('MetaMaskがインストールされていません');
     }
 
-    // コントラクトの初期化
-    const oceanContract = new Contract(oceanAddress, oceanABI, signer);
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const oceanContract = new ethers.Contract(
+      oceanAddress,
+      oceanABI,
+      signer
+    );
 
-    // ガス代の見積もり
+    console.log('Claiming bottle with tokenId:', tokenId);
+
+    // ガス代の見積もりを取得
     const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
-    console.log('Estimated gas:', gasEstimate.toString());
+    console.log('Estimated gas:', gasEstimate);
 
-    // トランザクションの実行
+    // トランザクションをより単純な形式で送信
     const tx = await oceanContract.claim(tokenId, {
-      gasLimit: BigInt(gasEstimate) * BigInt(12) / BigInt(10), // 見積もりの1.2倍を設定
-      maxFeePerGas: 10000000000, // 10 Gwei
-      maxPriorityFeePerGas: 1000000000 // 1 Gwei
+      gasLimit: gasEstimate
     });
 
-    // トランザクションの完了を待つ
+    console.log('Transaction sent:', tx.hash);
     const receipt = await tx.wait();
-    console.log('Transaction receipt:', receipt);
+    console.log('Transaction confirmed:', receipt);
     return receipt;
   } catch (error) {
     console.error('Error in claimBottle:', error);
+    if (error.code === -32603) {
+      throw new Error('トランザクションの実行に失敗しました。ネットワークの状態を確認してください。');
+    }
     throw error;
   }
 }
