@@ -21,4 +21,5 @@ type DriftingBottle @entity(immutable: false) {
   id: Bytes! # tokenId
   owner: Bytes!
   tokenURI: String!
+  sender: Bytes!
 }

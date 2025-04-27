@@ -3,7 +3,7 @@ import {
   BottleMinted as BottleMintedEvent
 } from "../generated/Ocean/Ocean"
 import { BottleClaimed, BottleMinted, DriftingBottle } from "../generated/schema"
-import { Bytes, ByteArray } from "@graphprotocol/graph-ts"
+import { Bytes, ByteArray, store } from "@graphprotocol/graph-ts"
 
 export function handleBottleClaimed(event: BottleClaimedEvent): void {
   let entity = new BottleClaimed(
@@ -16,11 +16,11 @@ export function handleBottleClaimed(event: BottleClaimedEvent): void {
   entity.transactionHash = event.transaction.hash
   entity.save()
 
-  // DriftingBottle のオーナーを更新
-  let bottle = DriftingBottle.load(Bytes.fromByteArray(ByteArray.fromBigInt(event.params.tokenId)))
+  // DriftingBottleから削除
+  let bottleId = Bytes.fromByteArray(ByteArray.fromBigInt(event.params.tokenId))
+  let bottle = DriftingBottle.load(bottleId)
   if (bottle) {
-    bottle.owner = event.params.claimer
-    bottle.save()
+    store.remove('DriftingBottle', bottleId.toHexString())
   }
 }
 
@@ -39,6 +39,7 @@ export function handleBottleMinted(event: BottleMintedEvent): void {
   // DriftingBottle を新規作成
   let bottle = new DriftingBottle(Bytes.fromByteArray(ByteArray.fromBigInt(event.params.tokenId)))
   bottle.owner = event.address
+  bottle.sender = event.params.sender
   bottle.tokenURI = event.params.tokenURI
   bottle.save()
 }
