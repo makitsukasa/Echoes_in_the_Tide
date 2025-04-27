@@ -3,24 +3,16 @@
 import { useState, useEffect } from 'react';
 import Button from './components/Button';
 import Modal from './components/Modal';
+import ThrowBottleModal from './components/ThrowBottleModal';
 import { fetchBottles } from './components/FetchBottles';
 import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle } from './lib/callcontracts';
-import axios from 'axios';
-
-async function onThrowBottleClick() {
-  await connectWallet();
-  await mintAndAssignToOcean("ipfs://your-token-uri");
-}
-
-async function onClaimClick(tokenId) {
-  await connectWallet();
-  await claimBottle(tokenId);
-}
+import { uploadToIPFS } from './lib/pinata';
 
 export default function Home() {
   const [bottles, setBottles] = useState([]);
   const [selectedBottle, setSelectedBottle] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
+  const [isThrowModalOpen, setIsThrowModalOpen] = useState(false);
 
   useEffect(() => {
     async function getBottles() {
@@ -31,8 +23,8 @@ export default function Home() {
   }, []);
 
   const handleWalletConnect = async () => {
-    if(connectWallet()){
-      const address = getWalletAddress();
+    if(await connectWallet()){
+      const address = await getWalletAddress();
       setWalletAddress(address);
     }
   };
@@ -42,6 +34,18 @@ export default function Home() {
       setSelectedBottle({name, description, image});
     } catch (error) {
       console.error("データ取得に失敗しました:", error);
+    }
+  };
+
+  const handleThrowBottle = async (formData) => {
+    try {
+      const tokenURI = await uploadToIPFS(formData);
+      await mintAndAssignToOcean(tokenURI);
+      // ボトルリストを更新
+      const data = await fetchBottles();
+      setBottles(data);
+    } catch (error) {
+      console.error("ボトル投げに失敗しました:", error);
     }
   };
 
@@ -63,12 +67,30 @@ export default function Home() {
       </div>
 
       {walletAddress ? (
-        <p>ウォレット接続済み: {walletAddress}</p>
+        <div className="flex flex-col items-center gap-4 mt-8">
+          <p>ウォレット接続済み: {walletAddress}</p>
+          <button
+            onClick={() => setIsThrowModalOpen(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            ボトルを投げる
+          </button>
+        </div>
       ) : (
-        <button onClick={handleWalletConnect}>ウォレット接続</button>
+        <button
+          onClick={handleWalletConnect}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        >
+          ウォレット接続
+        </button>
       )}
 
       <Modal data={selectedBottle} onClose={() => setSelectedBottle(null)} />
+      <ThrowBottleModal
+        isOpen={isThrowModalOpen}
+        onClose={() => setIsThrowModalOpen(false)}
+        onSubmit={handleThrowBottle}
+      />
     </div>
   );
 }
