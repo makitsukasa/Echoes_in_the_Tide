@@ -1,13 +1,23 @@
 import { useState } from 'react';
 
-export default function ThrowBottleModal({ isOpen, onClose, onSubmit }) {
+interface ThrowBottleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (formData: {
+    name: string;
+    description: string;
+    image?: File;
+  }) => Promise<void>;
+}
+
+export default function ThrowBottleModal({ isOpen, onClose, onSubmit }: ThrowBottleModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image: null
+    image: null as File | null
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const submitData = { ...formData };
     if (!submitData.image) {
@@ -18,8 +28,8 @@ export default function ThrowBottleModal({ isOpen, onClose, onSubmit }) {
     onClose();
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, image: file }));
     } else {
@@ -49,7 +59,7 @@ export default function ThrowBottleModal({ isOpen, onClose, onSubmit }) {
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              rows="4"
+              rows={4}
               required
             />
           </div>

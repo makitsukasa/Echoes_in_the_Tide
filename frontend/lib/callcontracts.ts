@@ -34,11 +34,11 @@ const oceanABI = [
 ];
 
 // グローバルprovider/signer（キャッシュ用）
-let provider;
-let signer;
+let provider: BrowserProvider | null = null;
+let signer: ethers.JsonRpcSigner | null = null;
 
 // MetaMaskと接続する
-export async function connectWallet() {
+export async function connectWallet(): Promise<boolean> {
   if (typeof window !== 'undefined' && window.ethereum) {
     try {
       // Polygon Amoyネットワークの設定
@@ -62,25 +62,25 @@ export async function connectWallet() {
 }
 
 // ウォレットアドレスを取得する
-export async function getWalletAddress() {
+export async function getWalletAddress(): Promise<string | null> {
   if (!signer) {
     const connected = await connectWallet();
     if (!connected) return null;
   }
-  return await signer.getAddress();
+  return await signer!.getAddress();
 }
 
 // OceanコントラクトにmintAndAssignを実行する
-export async function mintAndAssignToOcean(tokenURI) {
+export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.ContractTransactionReceipt> {
   try {
     if (!signer) {
       const connected = await connectWallet();
-      if (!connected) return;
+      if (!connected) throw new Error('ウォレットに接続できませんでした');
     }
 
     // コントラクトの初期化
     console.log('Initializing contract...');
-    const oceanContract = new Contract(oceanAddress, oceanABI, signer);
+    const oceanContract = new Contract(oceanAddress, oceanABI, signer!);
     console.log('Contract initialized');
 
     // ガス代の見積もり
@@ -96,7 +96,7 @@ export async function mintAndAssignToOcean(tokenURI) {
       const data = iface.encodeFunctionData("mintAndAssign", [tokenURI]);
 
       // トランザクションの送信
-      const tx = await signer.sendTransaction({
+      const tx = await signer!.sendTransaction({
         to: oceanAddress,
         data: data,
         gasLimit: gasEstimate
@@ -108,7 +108,7 @@ export async function mintAndAssignToOcean(tokenURI) {
       console.log('Waiting for transaction receipt...');
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
-      return receipt;
+      return receipt!;
     } catch (error) {
       console.error('Transaction execution error:', error);
       if (error.data) {
@@ -123,7 +123,7 @@ export async function mintAndAssignToOcean(tokenURI) {
 }
 
 // Oceanコントラクトのclaimを実行する
-export async function claimBottle(tokenId) {
+export async function claimBottle(tokenId: string): Promise<ethers.ContractTransactionReceipt> {
   try {
     if (!window.ethereum) {
       throw new Error('MetaMaskがインストールされていません');
@@ -151,7 +151,7 @@ export async function claimBottle(tokenId) {
     console.log('Transaction sent:', tx.hash);
     const receipt = await tx.wait();
     console.log('Transaction confirmed:', receipt);
-    return receipt;
+    return receipt!;
   } catch (error) {
     console.error('Error in claimBottle:', error);
     if (error.code === -32603) {

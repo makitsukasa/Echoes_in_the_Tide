@@ -4,7 +4,13 @@ import axios from 'axios';
 const PINATA_API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;
 const PINATA_SECRET_KEY = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY;
 
-export async function uploadToIPFS(data) {
+interface FormData {
+  name: string;
+  description: string;
+  image?: File;
+}
+
+export async function uploadToIPFS(data: FormData): Promise<string> {
   try {
     // メタデータをJSONとしてアップロード
     const metadata = {
