@@ -15,7 +15,7 @@ import { PageBottleMemories } from "@/components/pages/page-bottle-memories"
 import { BottleDetailModal } from "@/components/BottleDetailModal"
 import ThrowBottleModal from "@/components/ThrowBottleModal"
 import { fetchBottles } from "@/lib/fetchBottles"
-import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle } from "@/lib/callcontracts"
+import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle, tryAutoConnect } from "@/lib/callcontracts"
 import { uploadToIPFS } from "@/lib/pinata"
 import { Bottle } from "@/types/bottle"
 
@@ -31,6 +31,40 @@ export default function HomePage() {
   // トランジションの時間を定数として定義（CSSのdurationと一致させる）
   const TRANSITION_DURATION = 300 // ミリ秒
 
+  // ページ読み込み時に自動再接続を試みる
+  useEffect(() => {
+    const initializeWallet = async () => {
+      if (await tryAutoConnect()) {
+        const address = await getWalletAddress()
+        setWalletAddress(address)
+        setIsConnected(true)
+      }
+    }
+    initializeWallet()
+
+    // MetaMaskのアカウント変更イベントをリッスン
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        // アカウントが切断された場合
+        setIsConnected(false)
+        setWalletAddress(null)
+      } else {
+        // アカウントが変更された場合
+        setWalletAddress(accounts[0])
+      }
+    }
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged)
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+      }
+    }
+  }, [])
+
   // メニューの開閉状態が変わったときの処理
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -45,8 +79,15 @@ export default function HomePage() {
       setShowMenuText(false)
     }
 
+    // connectWalletイベントをリッスン
+    const handleConnectWallet = () => {
+      handleConnect()
+    }
+    window.addEventListener('connectWallet', handleConnectWallet)
+
     return () => {
       clearTimeout(timer)
+      window.removeEventListener('connectWallet', handleConnectWallet)
     }
   }, [menuOpen])
 

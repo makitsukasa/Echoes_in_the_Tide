@@ -1,5 +1,16 @@
 import { BrowserProvider, Contract, ethers } from 'ethers';
 
+// MetaMaskの型定義
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      on: (eventName: string, callback: (accounts: string[]) => void) => void;
+      removeListener: (eventName: string, callback: (accounts: string[]) => void) => void;
+    };
+  }
+}
+
 // コントラクトのアドレス
 const oceanAddress = "0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422";   // Ocean コントラクトのアドレス
 
@@ -61,11 +72,38 @@ export async function connectWallet(): Promise<boolean> {
   }
 }
 
+// 自動再接続を試みる
+export async function tryAutoConnect(): Promise<boolean> {
+  if (typeof window !== 'undefined' && window.ethereum) {
+    try {
+      // 既に接続されているアカウントを確認
+      const accounts = await window.ethereum.request({
+        method: 'eth_accounts'
+      });
+
+      if (accounts.length > 0) {
+        // 接続済みの場合は自動的にproviderとsignerを初期化
+        provider = new BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        return true;
+      }
+    } catch (error) {
+      console.error('Error in auto connect:', error);
+    }
+  }
+  return false;
+}
+
 // ウォレットアドレスを取得する
 export async function getWalletAddress(): Promise<string | null> {
   if (!signer) {
-    const connected = await connectWallet();
-    if (!connected) return null;
+    // まず自動再接続を試みる
+    const autoConnected = await tryAutoConnect();
+    if (!autoConnected) {
+      // 自動再接続に失敗した場合は手動接続を試みる
+      const connected = await connectWallet();
+      if (!connected) return null;
+    }
   }
   return await signer!.getAddress();
 }

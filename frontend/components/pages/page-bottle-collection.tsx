@@ -54,8 +54,8 @@ export function PageBottleCollection({ isConnected, onBottleSelected }: PageBott
   }
 
   const handleConnectWallet = () => {
-    // この関数は実際には使用されませんが、ConnectWalletコンポーネントに渡すために必要
-    // 実際のウォレット接続は親コンポーネントで管理されています
+    // 親コンポーネントのhandleConnect関数を呼び出す
+    window.dispatchEvent(new CustomEvent('connectWallet'))
   }
 
   if (!isConnected) {
