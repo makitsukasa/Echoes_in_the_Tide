@@ -112,10 +112,10 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-sky-100 to-blue-200">
-      <div className="container relative z-10 px-4 py-6 mx-auto">
-        <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-serif text-blue-900">波打ち際の小瓶</h1>
+    <main className="relative overflow-hidden bg-gradient-to-b from-sky-100 to-blue-200">
+      <div className="container relative z-10 h-full px-4 py-6 mx-auto flex flex-col">
+        <header className="flex items-center justify-between">
+          <h1 className="text-2xl font-serif text-blue-900"></h1>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
               <Info className="w-5 h-5 text-blue-700" />
@@ -131,7 +131,9 @@ export default function HomePage() {
           </div>
         </header>
 
-        {renderContent()}
+        <div className="flex-1">
+          {renderContent()}
+        </div>
       </div>
 
       {/* ハンバーガーメニュー */}
@@ -153,9 +155,10 @@ export default function HomePage() {
           style={{ width: menuOpen ? "12rem" : "2.5rem" }}
         >
           <div
-            className={`bg-white/30 backdrop-blur-sm shadow-lg rounded-l-lg py-4 px-2 transition-all duration-300 h-64 flex flex-col overflow-hidden ${
+            className={`bg-white/70 backdrop-blur-sm shadow-lg rounded-l-lg py-4 px-2 transition-all duration-300 h-64 flex flex-col overflow-hidden ${
               menuOpen ? "w-full" : "w-10"
             }`}
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
           >
             <div className="flex items-center justify-between mb-6 h-6">
               <div className={`transition-opacity duration-300 ${showMenuText ? "opacity-100" : "opacity-0"}`}>
@@ -168,8 +171,9 @@ export default function HomePage() {
               <Button
                 variant={activeView === "ocean" ? "default" : "ghost"}
                 className={`w-full justify-start ${
-                  activeView === "ocean" ? "bg-blue-100/70 text-blue-800 hover:bg-blue-200/70" : "bg-transparent hover:bg-white/40"
+                  activeView === "ocean" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"
                 }`}
+                style={activeView === "ocean" ? { backgroundColor: 'rgba(190, 240, 255, 0.4)' } : {}}
                 onClick={() => {
                   setActiveView("ocean")
                   setMenuOpen(false)
@@ -184,8 +188,9 @@ export default function HomePage() {
               <Button
                 variant={activeView === "create" ? "default" : "ghost"}
                 className={`w-full justify-start ${
-                  activeView === "create" ? "bg-blue-100/70 text-blue-800 hover:bg-blue-200/70" : "bg-transparent hover:bg-white/40"
+                  activeView === "create" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"
                 }`}
+                style={activeView === "create" ? { backgroundColor: 'rgba(190, 240, 255, 0.4)' } : {}}
                 onClick={() => {
                   setActiveView("create")
                   setMenuOpen(false)
@@ -200,8 +205,9 @@ export default function HomePage() {
               <Button
                 variant={activeView === "collection" ? "default" : "ghost"}
                 className={`w-full justify-start ${
-                  activeView === "collection" ? "bg-blue-100/70 text-blue-800 hover:bg-blue-200/70" : "bg-transparent hover:bg-white/40"
+                  activeView === "collection" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"
                 }`}
+                style={activeView === "collection" ? { backgroundColor: 'rgba(190, 240, 255, 0.4)' } : {}}
                 onClick={() => {
                   setActiveView("collection")
                   setMenuOpen(false)
@@ -216,8 +222,9 @@ export default function HomePage() {
               <Button
                 variant={activeView === "memories" ? "default" : "ghost"}
                 className={`w-full justify-start ${
-                  activeView === "memories" ? "bg-blue-100/70 text-blue-800 hover:bg-blue-200/70" : "bg-transparent hover:bg-white/40"
+                  activeView === "memories" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"
                 }`}
+                style={activeView === "memories" ? { backgroundColor: 'rgba(190, 240, 255, 0.4)' } : {}}
                 onClick={() => {
                   setActiveView("memories")
                   setMenuOpen(false)
