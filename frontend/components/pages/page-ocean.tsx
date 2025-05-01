@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import useSWR from 'swr'
 import { Button } from "@/components/ui/button"
 import { Ocean } from "@/components/ui/ocean"
-import { MessageCircle, Bookmark } from "lucide-react"
+import { MessageCircle } from "lucide-react"
 import { fetchBottles } from "@/lib/fetchBottles"
 import { Bottle } from "@/types/bottle"
 
@@ -13,51 +14,30 @@ interface PageOceanProps {
 }
 
 export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
-  const [bottles, setBottles] = useState<Bottle[]>([])
-  const [currentBottles, setCurrentBottles] = useState<Bottle[]>([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const { data: bottles = [], error } = useSWR('/api/bottles', fetchBottles, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 1000 * 60 * 10,
+    dedupingInterval: 1000 * 60 * 10,
+  })
+
+  // デバッグ用に3つ小瓶を表示
+  if (bottles.length === 1) {
+    const length = bottles[0].id.slice(2).length;
+    bottles.push(JSON.parse(JSON.stringify(bottles[0])));
+    bottles[1].id = "0x" + (parseInt(bottles[0].id, 16) + 1).toString(16).padStart(length, "0");;
+    bottles.push(JSON.parse(JSON.stringify(bottles[0])));
+    bottles[2].id = "0x" + (parseInt(bottles[0].id, 16) + 2).toString(16).padStart(length, "0");
+    console.log(bottles);
+  }
+
+  const [washedBottles, setWashedBottles] = useState<Bottle[]>([])
 
   useEffect(() => {
-    async function getBottles() {
-      const data = await fetchBottles()
-      // data[1] = data[0]; data[1].id = data[0].id + 1;
-      // data[2] = data[0]; data[2].id = data[0].id + 2;
-      setBottles(data)
-      if (data.length > 0) {
-        setCurrentBottles(data.slice(0, Math.min(3, data.length)))
-      }
-    }
-    getBottles()
-  }, [])
-
-  // 次の小瓶を表示する関数
-  const handleNextBottle = () => {
     if (bottles.length > 0) {
-      const nextIndex = (currentIndex + 1) % bottles.length
-      setCurrentIndex(nextIndex)
-      const newBottles = []
-      for (let i = 0; i < 3; i++) {
-        const index = (nextIndex + i) % bottles.length
-        newBottles.push(bottles[index])
-      }
-      setCurrentBottles(newBottles)
+      setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)))
     }
-  }
-
-  // 小瓶を拾う関数
-  const handleClaimBottle = () => {
-    if (!isConnected) {
-      alert("小瓶を拾うにはウォレットを接続してください")
-      return
-    }
-
-    if (currentBottles.length > 0 && onBottleClaimed) {
-      currentBottles.forEach(bottle => onBottleClaimed(bottle))
-    }
-
-    // 次の小瓶を表示
-    handleNextBottle()
-  }
+  }, [bottles])
 
   return (
     <div className="relative w-full h-[calc(100vh-4rem)]">
@@ -77,9 +57,9 @@ export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
       <div className="fixed inset-0 bg-black/20" />
       <div className="relative flex flex-col items-center justify-center h-full">
         <Ocean />
-        {currentBottles.length > 0 ? (
+        {washedBottles.length > 0 ? (
           <div className="absolute z-20 w-full h-full">
-            {currentBottles.map((bottle, index) => (
+            {washedBottles.map((bottle, index) => (
               <div
                 key={bottle.id}
                 className="cursor-pointer absolute"
@@ -105,7 +85,7 @@ export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
         ) : (
           <div className="absolute z-20 flex flex-col items-center gap-4 text-center bottom-10">
             {bottles.length > 0 && (
-              <Button variant="outline" className="bg-white/80 hover:bg-white" onClick={() => setCurrentBottles(bottles.slice(0, Math.min(3, bottles.length)))}>
+              <Button variant="outline" className="bg-white/80 hover:bg-white" onClick={() => setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)))}>
                 <MessageCircle className="w-4 h-4 mr-2" />
                 小瓶を見る
               </Button>
