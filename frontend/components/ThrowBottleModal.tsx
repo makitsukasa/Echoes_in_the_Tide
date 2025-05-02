@@ -1,94 +1,128 @@
-import { useState } from 'react';
+import { useBottle } from "@/lib/useBottle"
+import { useBottleStore } from "@/lib/bottleStore"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Upload, Loader2 } from "lucide-react"
+import { useState, useCallback } from "react"
 
 interface ThrowBottleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (formData: {
-    name: string;
-    description: string;
-    image?: File;
-  }) => Promise<void>;
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default function ThrowBottleModal({ isOpen, onClose, onSubmit }: ThrowBottleModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    image: null as File | null
-  });
+export function ThrowBottleModal({ isOpen, onClose }: ThrowBottleModalProps) {
+  const [message, setMessage] = useState("")
+  const [image, setImage] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const { throwBottle, isLoading, error } = useBottle()
+  const { setIsThrowModalOpen } = useBottleStore()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const submitData = { ...formData };
-    if (!submitData.image) {
-      delete submitData.image;
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!message.trim()) {
+      alert("メッセージを入力してください")
+      return
     }
-    console.log('Submitting data:', submitData);
-    await onSubmit(submitData);
-    onClose();
-  };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    try {
+      await throwBottle({
+        name: "Echoes in the Tide",
+        description: message,
+        image: image || undefined
+      })
+      setMessage("")
+      setImage(null)
+      setPreview(null)
+      setIsThrowModalOpen(false)
+      alert("小瓶を海に流しました！")
+    } catch (error) {
+      console.error("小瓶を流す際にエラーが発生しました", error)
+      alert("小瓶を流せませんでした。もう一度お試しください。")
+    }
+  }, [message, image, throwBottle, setIsThrowModalOpen])
+
+  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value)
+  }, [])
+
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
     if (file) {
-      setFormData(prev => ({ ...prev, image: file }));
-    } else {
-      setFormData(prev => ({ ...prev, image: null }));
+      setImage(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-  };
-
-  if (!isOpen) return null;
+  }, [])
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">名前</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>小瓶を海に流す</DialogTitle>
+          <DialogDescription>
+            あなたの思いを小瓶に込めて、海に流しましょう。 誰かがあなたの小瓶を拾うかもしれません。
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="message">メッセージ</Label>
+              <Textarea
+                id="message"
+                placeholder="あなたの思いを書いてください..."
+                className="min-h-32 resize-none"
+                value={message}
+                onChange={handleMessageChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image">画像（任意）</Label>
+              <div className="flex items-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById("image")?.click()}
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  画像をアップロード
+                </Button>
+                <Input id="image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </div>
+
+              {preview && (
+                <div className="mt-4 overflow-hidden rounded-md aspect-video bg-blue-50">
+                  <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">メッセージ</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              rows={4}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">画像（任意）</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mt-1 block w-full"
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-            >
-              やめておく
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            >
-              小瓶を流す
-            </button>
-          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              キャンセル
+            </Button>
+            <Button type="submit" disabled={isLoading || !message.trim()}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  小瓶を流しています...
+                </>
+              ) : (
+                "小瓶を海に流す"
+              )}
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
-  );
+      </DialogContent>
+    </Dialog>
+  )
 }

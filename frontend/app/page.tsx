@@ -13,20 +13,19 @@ import { PageBottleForm } from "@/components/pages/page-bottle-form"
 import { PageBottleCollection } from "@/components/pages/page-bottle-collection"
 import { PageBottleMemories } from "@/components/pages/page-bottle-memories"
 import { BottleDetailModal } from "@/components/BottleDetailModal"
-import ThrowBottleModal from "@/components/ThrowBottleModal"
+import { ThrowBottleModal } from "@/components/ThrowBottleModal"
 import { fetchBottles } from "@/lib/fetchBottles"
-import { connectWallet, getWalletAddress, mintAndAssignToOcean, claimBottle, tryAutoConnect } from "@/lib/callcontracts"
-import { uploadToIPFS } from "@/lib/pinata"
+import { connectWallet, getWalletAddress, tryAutoConnect } from "@/lib/wallet"
 import { Bottle } from "@/types/bottle"
+import { useBottleStore } from "@/lib/bottleStore"
 
 export default function HomePage() {
   const [isConnected, setIsConnected] = useState(false)
   const [activeView, setActiveView] = useState<string>("ocean")
   const [menuOpen, setMenuOpen] = useState(false)
   const [showMenuText, setShowMenuText] = useState(false)
-  const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
-  const [isThrowModalOpen, setIsThrowModalOpen] = useState(false)
+  const { selectedBottle, setSelectedBottle, isThrowModalOpen, setIsThrowModalOpen } = useBottleStore()
 
   // トランジションの時間を定数として定義（CSSのdurationと一致させる）
   const TRANSITION_DURATION = 300 // ミリ秒
@@ -107,24 +106,6 @@ export default function HomePage() {
     }
   }
 
-  const handleThrowBottle = async (formData: { name: string; description: string; image?: File }) => {
-    try {
-      const tokenURI = await uploadToIPFS(formData)
-      await mintAndAssignToOcean(tokenURI)
-    } catch (error) {
-      console.error("小瓶を海に流せませんでした:", error)
-    }
-  }
-
-  const handleClaimBottle = async (tokenId: string) => {
-    try {
-      await claimBottle(tokenId)
-      setSelectedBottle(null)
-    } catch (error) {
-      console.error("小瓶を拾い上げられませんでした:", error)
-    }
-  }
-
   const renderContent = () => {
     switch (activeView) {
       case "ocean":
@@ -132,19 +113,19 @@ export default function HomePage() {
       case "create":
         return (
           <div className="flex flex-col items-center justify-center min-h-[70vh]">
-            <PageBottleForm isConnected={isConnected} onBottleSent={handleThrowBottle} />
+            <PageBottleForm isConnected={isConnected} />
           </div>
         )
       case "collection":
         return (
           <div className="min-h-[70vh]">
-            <PageBottleCollection isConnected={isConnected} onBottleSelected={handleBottleClick} />
+            <PageBottleCollection isConnected={isConnected} />
           </div>
         )
       case "memories":
         return (
           <div className="min-h-[70vh]">
-            <PageBottleMemories isConnected={isConnected} onBottleSelected={handleBottleClick} />
+            <PageBottleMemories isConnected={isConnected} />
           </div>
         )
       default:
@@ -285,12 +266,10 @@ export default function HomePage() {
       <BottleDetailModal
         data={selectedBottle}
         onClose={() => setSelectedBottle(null)}
-        onClaim={handleClaimBottle}
       />
       <ThrowBottleModal
         isOpen={isThrowModalOpen}
         onClose={() => setIsThrowModalOpen(false)}
-        onSubmit={handleThrowBottle}
       />
     </main>
   )

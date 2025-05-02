@@ -15,7 +15,8 @@ export async function uploadToIPFS(data: FormData): Promise<string> {
     // メタデータをJSONとしてアップロード
     const metadata = {
       name: data.name,
-      description: data.description
+      description: data.description,
+      image: ""
     };
 
     // 画像がある場合は先にアップロード
@@ -34,6 +35,8 @@ export async function uploadToIPFS(data: FormData): Promise<string> {
       imageUrl = `ipfs://${imageResponse.data.IpfsHash}`;
       metadata.image = imageUrl;
     }
+
+    console.log(metadata);
 
     // メタデータをJSONとしてアップロード
     const metadataResponse = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', metadata, {

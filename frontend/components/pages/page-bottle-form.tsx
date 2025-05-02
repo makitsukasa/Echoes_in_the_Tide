@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,17 +9,19 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { ConnectWallet } from "@/components/ui/connect-wallet"
 import { Send, Upload, Sparkles } from "lucide-react"
+import { useBottle } from "@/lib/useBottle"
+import { useBottleStore } from "@/lib/bottleStore"
 
 interface PageBottleFormProps {
   isConnected: boolean
-  onBottleSent?: (formData: { name: string; description: string; image?: File }) => void
 }
 
-export function PageBottleForm({ isConnected, onBottleSent }: PageBottleFormProps) {
+export function PageBottleForm({ isConnected }: PageBottleFormProps) {
   const [message, setMessage] = useState("")
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { throwBottle, isLoading, error } = useBottle()
+  const { setIsThrowModalOpen } = useBottleStore()
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -47,36 +48,24 @@ export function PageBottleForm({ isConnected, onBottleSent }: PageBottleFormProp
       return
     }
 
-    setIsSubmitting(true)
-
     try {
-      // 実際のブロックチェーン処理をここに実装
-      // 例: NFTのミント、IPFSへのアップロードなど
-
-      // 処理完了を模擬（実際の実装では非同期処理の結果を待つ）
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // 親コンポーネントに通知（必要な場合）
-      if (onBottleSent) {
-        onBottleSent({ name: message, description: message, image })
-      }
-
-      // フォームをリセット
+      await throwBottle({
+        name: "Echoes in the Tide",
+        description: message,
+        image: image || undefined
+      })
       setMessage("")
       setImage(null)
       setPreview(null)
-
+      setIsThrowModalOpen(false)
       alert("小瓶を海に流しました！")
     } catch (error) {
       console.error("小瓶を流す際にエラーが発生しました", error)
       alert("小瓶を流せませんでした。もう一度お試しください。")
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
   const handleConnectWallet = () => {
-    // 親コンポーネントのhandleConnect関数を呼び出す
     window.dispatchEvent(new CustomEvent('connectWallet'))
   }
 
@@ -133,8 +122,8 @@ export function PageBottleForm({ isConnected, onBottleSent }: PageBottleFormProp
             </div>
 
             <div className="mt-6">
-              <Button type="submit" className="w-full" disabled={isSubmitting || !message.trim()}>
-                {isSubmitting ? (
+              <Button type="submit" className="w-full" disabled={isLoading || !message.trim()}>
+                {isLoading ? (
                   <>
                     <Sparkles className="w-4 h-4 mr-2 animate-spin" />
                     小瓶を流しています...

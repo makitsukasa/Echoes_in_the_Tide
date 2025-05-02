@@ -1,5 +1,6 @@
 export interface Bottle {
   id: string
+  tokenId?: string
   name?: string
   description?: string
   message?: string

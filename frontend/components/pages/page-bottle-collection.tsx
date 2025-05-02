@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 
 interface PageBottleCollectionProps {
   isConnected: boolean
-  onBottleSelected?: (bottle: any) => void
 }
 
 // モックデータ
@@ -33,7 +32,7 @@ const mockBottles = [
   },
 ]
 
-export function PageBottleCollection({ isConnected, onBottleSelected }: PageBottleCollectionProps) {
+export function PageBottleCollection({ isConnected }: PageBottleCollectionProps) {
   const [selectedBottle, setSelectedBottle] = useState<any>(null)
   const [bottles, setBottles] = useState(mockBottles)
 
@@ -42,11 +41,6 @@ export function PageBottleCollection({ isConnected, onBottleSelected }: PageBott
 
   const handleSelectBottle = (bottle: any) => {
     setSelectedBottle(bottle)
-
-    // 親コンポーネントに通知（必要な場合）
-    if (onBottleSelected) {
-      onBottleSelected(bottle)
-    }
   }
 
   const handleBackToList = () => {

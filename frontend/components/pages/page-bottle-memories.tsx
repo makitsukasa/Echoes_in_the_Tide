@@ -10,7 +10,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface PageBottleMemoriesProps {
   isConnected: boolean
-  onBottleSelected?: (bottle: any) => void
 }
 
 // モックデータ
@@ -50,7 +49,7 @@ const mockSentBottles = [
   },
 ]
 
-export function PageBottleMemories({ isConnected, onBottleSelected }: PageBottleMemoriesProps) {
+export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
   const [selectedBottle, setSelectedBottle] = useState<any>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [bottles, setBottles] = useState(mockSentBottles)
@@ -67,11 +66,6 @@ export function PageBottleMemories({ isConnected, onBottleSelected }: PageBottle
 
   const handleSelectBottle = (bottle: any) => {
     setSelectedBottle(bottle)
-
-    // 親コンポーネントに通知（必要な場合）
-    if (onBottleSelected) {
-      onBottleSelected(bottle)
-    }
   }
 
   const handleBackToList = () => {
@@ -255,7 +249,7 @@ export function PageBottleMemories({ isConnected, onBottleSelected }: PageBottle
                     : "拾われた小瓶はありません"}
               </p>
               {filterStatus === "all" && (
-                <Button variant="outline" onClick={() => document.querySelector('[data-value="create"]')?.click()}>
+                <Button variant="outline" onClick={() => setFilterStatus("create")}>
                   小瓶を流してみましょう
                 </Button>
               )}
