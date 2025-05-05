@@ -98,7 +98,7 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="image">画像（任意）</Label>
                 <div className="flex items-center gap-4">
                   <Button
@@ -118,7 +118,7 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
                     <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
 
             <div className="mt-6">

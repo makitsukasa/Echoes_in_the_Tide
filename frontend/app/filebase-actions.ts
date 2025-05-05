@@ -9,19 +9,25 @@ if (!S3_KEY || !S3_SECRET) {
   throw new Error('S3_KEYとS3_SECRETの環境変数が設定されていません');
 }
 
-interface FormData {
+interface FormDataWithImage {
   name: string;
   description: string;
-  image?: File;
-}
+  image: File;
+};
+
+interface FormDataWithoutImage {
+  name: string;
+  description: string;
+};
+
+type FormData = FormDataWithImage | FormDataWithoutImage;
 
 export async function uploadToIPFS(data: FormData): Promise<string> {
   try {
     // メタデータを準備
-    const metadata = {
+    var metadata = {
       name: data.name,
-      description: data.description,
-      image: ""
+      description: data.description
     };
 
     // ObjectManagerの初期化
@@ -30,31 +36,27 @@ export async function uploadToIPFS(data: FormData): Promise<string> {
     });
 
     // 画像がある場合は先にアップロード
-    let imageUrl = null;
-    if (data.image) {
-      const imageBuffer = await data.image.arrayBuffer();
-      const imageName = `images/${Date.now()}-${data.image.name}`;
-      const uploadedImage = await objectManager.upload(
-        imageName,
-        Buffer.from(imageBuffer),
-        {},
-        {}
-      );
-      imageUrl = `ipfs://${uploadedImage.cid}`;
-      metadata.image = imageUrl;
-    }
+    // if ('image' in data && data.image) {
+    //   const imageBuffer = await data.image.arrayBuffer();
+    //   const uploadedImage = await objectManager.upload(
+    //     `bottle_${Date.now()}/${data.image.name}`,
+    //     Buffer.from(imageBuffer),
+    //     {},
+    //     {}
+    //   );
+    //   Object.assign(metadata, { image: `ipfs://${uploadedImage.cid}` });
+    // }
 
     // メタデータをJSONとしてアップロード
-    const jsonString = JSON.stringify(metadata, null, 2);
-    const metadataName = `metadata/0.json`;
     const uploadedMetadata = await objectManager.upload(
-      metadataName,
-      Buffer.from(jsonString),
+      `bottle_${Date.now()}/0.json`,
+      Buffer.from(JSON.stringify(metadata, null, 2)),
       {},
       {}
     );
 
     return `ipfs://${uploadedMetadata.cid}`;
+
   } catch (error) {
     console.error('Filebaseアップロードエラー:', error);
     throw error;
