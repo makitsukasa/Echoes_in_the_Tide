@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react"
 import { mintAndAssignToOcean, claimBottle as claimBottleContract } from "./ocean-contract"
-import { uploadToIPFS } from "./pinata"
+import { uploadToIPFS } from "../app/filebase-actions"
 
 export function useBottle() {
   const [isLoading, setIsLoading] = useState(false)

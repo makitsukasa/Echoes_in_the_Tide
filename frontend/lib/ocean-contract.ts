@@ -35,18 +35,35 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       });
 
       console.log('Transaction hash:', tx.hash);
+      console.log('Transaction details:', {
+        from: tx.from,
+        to: tx.to,
+        value: tx.value.toString(),
+        data: tx.data
+      });
 
       // トランザクションの完了を待つ
       console.log('Waiting for transaction receipt...');
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
       return receipt!;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction execution error:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+
       if (error.data) {
         console.error('Error data:', error.data);
       }
-      throw error;
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
+      if (error.code) {
+        console.error('Error code:', error.code);
+      }
+      if (error.transaction) {
+        console.error('Failed transaction:', error.transaction);
+      }
+      throw new Error(`トランザクションの実行に失敗しました: ${error.message || '不明なエラー'}`);
     }
   } catch (error) {
     console.error('Error in mintAndAssignToOcean:', error);

@@ -13,7 +13,7 @@ contract ClaimScript is Script {
         address oceanAddress = 0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422;
 
         // 拾いたい tokenId（mintAndAssign 後に Ocean が所有している tokenId）
-        uint256 tokenId = 0; // 必要に応じて変更
+        uint256 tokenId = 4; // 必要に応じて変更
 
         vm.startBroadcast(userPrivateKey);
 
