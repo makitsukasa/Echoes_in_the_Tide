@@ -240,7 +240,7 @@ export default function HomePage() {
                 </span>
               </Button>
 
-              <Button
+              {/* <Button
                 variant={activeView === "memories" ? "default" : "ghost"}
                 className={`w-full justify-start ${
                   activeView === "memories" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"
@@ -255,7 +255,7 @@ export default function HomePage() {
                 <span className={`ml-2 transition-opacity duration-300 ${showMenuText ? "opacity-100" : "opacity-0"}`}>
                   思い出す
                 </span>
-              </Button>
+              </Button> */}
             </nav>
           </div>
         </div>
