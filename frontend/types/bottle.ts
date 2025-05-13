@@ -8,4 +8,5 @@ export interface Bottle {
   date?: string
   status?: string
   interactions?: number
+  owner?: string
 }

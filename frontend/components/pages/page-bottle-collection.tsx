@@ -1,45 +1,39 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { ConnectWallet } from "@/components/ui/connect-wallet"
 import { MessageCircle, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAccount } from "wagmi"
+import { Bottle } from "@/types/bottle"
+import { fetchUserBottles } from "@/lib/fetchUserBottles"
 
 interface PageBottleCollectionProps {
   isConnected: boolean
 }
 
-// モックデータ
-const mockBottles = [
-  {
-    id: 1,
-    message: "今日も一日お疲れ様。あなたが頑張っていることを、誰かが見ています。",
-    image: "/placeholder.svg?height=200&width=400",
-    date: "2023-05-15",
-  },
-  {
-    id: 2,
-    message: "海の向こうから届いた言葉。あなたの小さな親切が、誰かの希望になるかもしれません。",
-    image: null,
-    date: "2023-06-22",
-  },
-  {
-    id: 3,
-    message: "星空を見上げると、同じ空の下で誰かも見上げているかもしれない。そう思うと不思議な気持ちになります。",
-    image: "/placeholder.svg?height=200&width=400",
-    date: "2023-07-10",
-  },
-]
-
 export function PageBottleCollection({ isConnected }: PageBottleCollectionProps) {
-  const [selectedBottle, setSelectedBottle] = useState<any>(null)
-  const [bottles, setBottles] = useState(mockBottles)
+  const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null)
+  const [bottles, setBottles] = useState<Bottle[]>([])
+  const { address } = useAccount()
 
-  // 実際のアプリケーションでは、ここでウォレットアドレスに基づいて
-  // ブロックチェーンやAPIからボトルデータを取得する処理を実装
+  useEffect(() => {
+    const loadBottles = async () => {
+      if (isConnected && address) {
+        try {
+          const userBottles = await fetchUserBottles(address)
+          setBottles(userBottles)
+        } catch (error) {
+          console.error('ボトルの取得に失敗しました:', error)
+        }
+      }
+    }
 
-  const handleSelectBottle = (bottle: any) => {
+    loadBottles()
+  }, [isConnected, address])
+
+  const handleSelectBottle = (bottle: Bottle) => {
     setSelectedBottle(bottle)
   }
 
@@ -48,7 +42,6 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
   }
 
   const handleConnectWallet = () => {
-    // 親コンポーネントのhandleConnect関数を呼び出す
     window.dispatchEvent(new CustomEvent('connectWallet'))
   }
 
@@ -88,11 +81,11 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
             </div>
           )}
 
-          <p className="mb-4 text-gray-700">{selectedBottle.message}</p>
+          <p className="mb-4 text-gray-700">{selectedBottle.message || selectedBottle.description}</p>
 
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="w-4 h-4 mr-1" />
-            <span>拾った日: {selectedBottle.date}</span>
+            <span>拾った日: {selectedBottle.date || '不明'}</span>
           </div>
         </div>
       ) : (
@@ -115,11 +108,11 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
               <CardContent className="p-4">
                 <div className="flex items-start gap-2">
                   <MessageCircle className="w-4 h-4 mt-1 text-blue-500 shrink-0" />
-                  <p className="text-sm text-gray-700 line-clamp-2">{bottle.message}</p>
+                  <p className="text-sm text-gray-700 line-clamp-2">{bottle.message || bottle.description}</p>
                 </div>
                 <div className="flex items-center mt-2 text-xs text-gray-500">
                   <Calendar className="w-3 h-3 mr-1" />
-                  <span>{bottle.date}</span>
+                  <span>{bottle.date || '不明'}</span>
                 </div>
               </CardContent>
             </Card>
