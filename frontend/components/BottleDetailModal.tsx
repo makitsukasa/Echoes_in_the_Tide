@@ -17,7 +17,7 @@ export function BottleDetailModal({ data, onClose }: BottleDetailModalProps) {
   const handleClaim = async () => {
     if (!data) return
     try {
-      await claimBottle(data.tokenId)
+      await claimBottle(data.id)
       setSelectedBottle(null)
     } catch (error) {
       console.error("小瓶を拾い上げられませんでした:", error)

@@ -25,19 +25,19 @@ export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
   if (bottles.length === 1) {
     const length = bottles[0].id.slice(2).length;
     bottles.push(JSON.parse(JSON.stringify(bottles[0])));
-    bottles[1].id = "0x" + (parseInt(bottles[0].id, 16) + 1).toString(16).padStart(length, "0");;
+    bottles[1].id = "0x" + (parseInt(bottles[0].id, 16) + 1).toString(16).padStart(length, "0");
     bottles.push(JSON.parse(JSON.stringify(bottles[0])));
     bottles[2].id = "0x" + (parseInt(bottles[0].id, 16) + 2).toString(16).padStart(length, "0");
     console.log(bottles);
   }
 
-  const [washedBottles, setWashedBottles] = useState<Bottle[]>([])
+  const [washedBottles, setWashedBottles] = useState<Bottle[]>([]);
 
   useEffect(() => {
     if (bottles.length > 0) {
-      setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)))
+      setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)));
     }
-  }, [bottles])
+  }, [bottles]);
 
   return (
     <div className="relative w-full h-[calc(100vh-4rem)]">

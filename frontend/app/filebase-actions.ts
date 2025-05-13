@@ -2,13 +2,6 @@
 
 import { ObjectManager } from '@filebase/sdk'
 
-const S3_KEY = process.env.NEXT_PUBLIC_S3_KEY;
-const S3_SECRET = process.env.NEXT_PUBLIC_S3_SECRET;
-
-if (!S3_KEY || !S3_SECRET) {
-  throw new Error('S3_KEYとS3_SECRETの環境変数が設定されていません');
-}
-
 interface FormDataWithImage {
   name: string;
   description: string;
@@ -22,7 +15,11 @@ interface FormDataWithoutImage {
 
 type FormData = FormDataWithImage | FormDataWithoutImage;
 
-export async function uploadToIPFS(data: FormData): Promise<string> {
+export async function uploadToIPFS(
+  data: FormData,
+  s3Key: string,
+  s3Secret: string
+): Promise<string> {
   try {
     // メタデータを準備
     var metadata = {
@@ -31,7 +28,7 @@ export async function uploadToIPFS(data: FormData): Promise<string> {
     };
 
     // ObjectManagerの初期化
-    const objectManager = new ObjectManager(S3_KEY, S3_SECRET, {
+    const objectManager = new ObjectManager(s3Key, s3Secret, {
       bucket: "echoes-in-the-tide"
     });
 

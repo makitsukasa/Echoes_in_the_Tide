@@ -9,44 +9,30 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
     if (!signer) {
       throw new Error('ウォレットに接続できませんでした');
     }
+    console.log('signer.getAddress(): ' + await signer.getAddress());
+    console.log('tokenURI: ' + tokenURI);
 
-    // コントラクトの初期化
-    console.log('Initializing contract...');
-    const oceanContract = new Contract(CONTRACT_ADDRESSES.OCEAN, CONTRACT_ABIS.OCEAN, signer);
-    console.log('Contract initialized');
-
-    // ガス代の見積もり
-    console.log('Estimating gas...');
-    const gasEstimate = await oceanContract.mintAndAssign.estimateGas(tokenURI);
-    console.log('Estimated gas:', gasEstimate.toString());
-
-    // トランザクションの実行
-    console.log('Executing transaction...');
     try {
-      // トランザクションデータの構築
-      const iface = new ethers.Interface(CONTRACT_ABIS.OCEAN);
-      const data = iface.encodeFunctionData("mintAndAssign", [tokenURI]);
+      // コントラクトの初期化
+      const oceanContract = new Contract(
+        CONTRACT_ADDRESSES.OCEAN,
+        CONTRACT_ABIS.OCEAN,
+        signer
+      );
+
+      // ガス代の見積もりを取得
+      const gasEstimate = await oceanContract.mintAndAssign.estimateGas(tokenURI);
+      console.log('Estimated gas:', gasEstimate.toString());
 
       // トランザクションの送信
-      const tx = await signer.sendTransaction({
-        to: CONTRACT_ADDRESSES.OCEAN,
-        data: data,
-        gasLimit: gasEstimate
+      const tx = await oceanContract.mintAndAssign(tokenURI, {
+        gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
       });
 
-      console.log('Transaction hash:', tx.hash);
-      console.log('Transaction details:', {
-        from: tx.from,
-        to: tx.to,
-        value: tx.value.toString(),
-        data: tx.data
-      });
-
-      // トランザクションの完了を待つ
-      console.log('Waiting for transaction receipt...');
+      console.log('Transaction sent:', tx.hash);
       const receipt = await tx.wait();
-      console.log('Transaction receipt:', receipt);
-      return receipt!;
+      console.log('Transaction confirmed:', receipt);
+      return receipt as ethers.ContractTransactionReceipt;
     } catch (error: any) {
       console.error('Transaction execution error:', error);
       console.error('Full error object:', JSON.stringify(error, null, 2));
@@ -63,7 +49,17 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       if (error.transaction) {
         console.error('Failed transaction:', error.transaction);
       }
-      throw new Error(`トランザクションの実行に失敗しました: ${error.message || '不明なエラー'}`);
+
+      // エラーメッセージをより具体的に
+      if (error.message?.includes('insufficient funds')) {
+        throw new Error('ガス代が不足しています。MATICを追加してください。');
+      } else if (error.message?.includes('user rejected')) {
+        throw new Error('トランザクションが拒否されました。');
+      } else if (error.message?.includes('nonce')) {
+        throw new Error('トランザクションの順序に問題があります。しばらく待ってから再試行してください。');
+      } else {
+        throw new Error(`トランザクションの実行に失敗しました: ${error.message || '不明なエラー'}`);
+      }
     }
   } catch (error) {
     console.error('Error in mintAndAssignToOcean:', error);
@@ -79,32 +75,59 @@ export async function claimBottle(tokenId: string): Promise<ethers.ContractTrans
       throw new Error('ウォレットに接続できませんでした');
     }
 
-    const oceanContract = new Contract(
-      CONTRACT_ADDRESSES.OCEAN,
-      CONTRACT_ABIS.OCEAN,
-      signer
-    );
-
     console.log('Claiming bottle with tokenId:', tokenId);
 
-    // ガス代の見積もりを取得
-    const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
-    console.log('Estimated gas:', gasEstimate);
+    try {
+      // コントラクトの初期化
+      const oceanContract = new Contract(
+        CONTRACT_ADDRESSES.OCEAN,
+        CONTRACT_ABIS.OCEAN,
+        signer
+      );
 
-    // トランザクションをより単純な形式で送信
-    const tx = await oceanContract.claim(tokenId, {
-      gasLimit: gasEstimate
-    });
+      // ガス代の見積もりを取得
+      const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
+      console.log('Estimated gas:', gasEstimate.toString());
 
-    console.log('Transaction sent:', tx.hash);
-    const receipt = await tx.wait();
-    console.log('Transaction confirmed:', receipt);
-    return receipt!;
+      // トランザクションの送信
+      const tx = await oceanContract.claim(tokenId, {
+        gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
+      });
+
+      console.log('Transaction sent:', tx.hash);
+      const receipt = await tx.wait();
+      console.log('Transaction confirmed:', receipt);
+      return receipt as ethers.ContractTransactionReceipt;
+    } catch (error: any) {
+      console.error('Transaction execution error:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+
+      if (error.data) {
+        console.error('Error data:', error.data);
+      }
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
+      if (error.code) {
+        console.error('Error code:', error.code);
+      }
+      if (error.transaction) {
+        console.error('Failed transaction:', error.transaction);
+      }
+
+      // エラーメッセージをより具体的に
+      if (error.message?.includes('insufficient funds')) {
+        throw new Error('ガス代が不足しています。MATICを追加してください。');
+      } else if (error.message?.includes('user rejected')) {
+        throw new Error('トランザクションが拒否されました。');
+      } else if (error.message?.includes('nonce')) {
+        throw new Error('トランザクションの順序に問題があります。しばらく待ってから再試行してください。');
+      } else {
+        throw new Error(`トランザクションの実行に失敗しました: ${error.message || '不明なエラー'}`);
+      }
+    }
   } catch (error) {
     console.error('Error in claimBottle:', error);
-    if (error.code === -32603) {
-      throw new Error('トランザクションの実行に失敗しました。ネットワークの状態を確認してください。');
-    }
     throw error;
   }
 }
