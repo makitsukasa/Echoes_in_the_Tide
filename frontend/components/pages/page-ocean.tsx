@@ -7,6 +7,7 @@ import { Ocean } from "@/components/ui/ocean"
 import { MessageCircle } from "lucide-react"
 import { fetchBottles } from "@/lib/fetchBottles"
 import { Bottle } from "@/types/bottle"
+import { useAccount } from "wagmi"
 
 interface PageOceanProps {
   isConnected: boolean
@@ -14,12 +15,17 @@ interface PageOceanProps {
 }
 
 export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
-  const { data: bottles = [], error } = useSWR('/api/bottles', fetchBottles, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    refreshInterval: 1000 * 60 * 10,
-    dedupingInterval: 1000 * 60 * 10,
-  })
+  const { address } = useAccount();
+  const { data: bottles = [], error } = useSWR(
+    address ? ['/api/bottles', address] : '/api/bottles',
+    () => fetchBottles(address),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      refreshInterval: 1000 * 60 * 10,
+      dedupingInterval: 1000 * 60 * 10,
+    }
+  )
 
   // デバッグ用に3つ小瓶を表示
   if (bottles.length === 1) {

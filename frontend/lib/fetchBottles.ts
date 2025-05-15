@@ -3,6 +3,7 @@ import axios from 'axios';
 interface Bottle {
   id: string;
   tokenURI: string;
+  sender: string;
   metadata_url?: string;
   name?: string;
   description?: string;
@@ -18,13 +19,19 @@ function getRandomBottles(bottles: Bottle[], count = 1): Bottle[] {
   return shuffled.slice(0, count);
 }
 
-export async function fetchBottles(): Promise<Bottle[]> {
+function filterBottlesBySender(bottles: Bottle[], excludedSender: string): Bottle[] {
+  if (!bottles || bottles.length === 0) return [];
+  return bottles.filter(bottle => bottle.sender.toLowerCase() !== excludedSender.toLowerCase());
+}
+
+export async function fetchBottles(excludedSender?: string): Promise<Bottle[]> {
   try {
     const response = await axios.post('https://api.studio.thegraph.com/query/109981/ocean/version/latest', {
       query: `{
         driftingBottles {
           id
           tokenURI
+          sender
         }
       }`
     });
@@ -33,6 +40,9 @@ export async function fetchBottles(): Promise<Bottle[]> {
       return [];
     }
     let res = response.data.data.driftingBottles;
+    if (excludedSender) {
+      res = filterBottlesBySender(res, excludedSender);
+    }
     res = getRandomBottles(res, 3);
     for (let i = 0; i < res.length; i++) {
       if (Object.keys(res[i]).includes("tokenURI")) {
