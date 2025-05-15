@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Ocean } from "@/components/ui/ocean"
 import { MessageCircle } from "lucide-react"
 import { fetchBottles } from "@/lib/fetchBottles"
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 import { useAccount } from "wagmi"
 
 interface PageOceanProps {

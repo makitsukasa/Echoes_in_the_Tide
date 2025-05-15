@@ -1,6 +1,6 @@
 import { useBottle } from "@/lib/useBottle"
 import { useBottleStore } from "@/lib/bottleStore"
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Loader2 } from "lucide-react"

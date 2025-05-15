@@ -6,7 +6,7 @@ import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { MessageCircle, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAccount } from "wagmi"
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 import { fetchUserBottles } from "@/lib/fetchUserBottles"
 
 interface PageBottleCollectionProps {

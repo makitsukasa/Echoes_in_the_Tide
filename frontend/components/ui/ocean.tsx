@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Bottle } from "./bottle"
+import { Bottle } from "@/components/ui/bottle"
 
 export function Ocean() {
   const oceanRef = useRef<HTMLDivElement>(null)
@@ -94,7 +94,7 @@ export function Ocean() {
             background-position-x: 200px;
           }
         }
-        
+
         @keyframes float {
           0%, 100% {
             transform: translateY(0) rotate(1deg);

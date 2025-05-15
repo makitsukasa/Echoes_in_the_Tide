@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 
 interface BottleState {
   selectedBottle: Bottle | null

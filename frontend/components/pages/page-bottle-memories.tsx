@@ -7,7 +7,7 @@ import { MessageCircle, Calendar, Heart, Share2, Anchor } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 
 interface PageBottleMemoriesProps {
   isConnected: boolean

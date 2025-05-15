@@ -15,7 +15,7 @@ import { PageBottleMemories } from "@/components/pages/page-bottle-memories"
 import { BottleDetailModal } from "@/components/BottleDetailModal"
 import { ThrowBottleModal } from "@/components/ThrowBottleModal"
 import { connectWallet, getWalletAddress, tryAutoConnect } from "@/lib/wallet"
-import { Bottle } from "@/types/bottle"
+import { Bottle } from "@/lib/bottleUtil"
 import { useBottleStore } from "@/lib/bottleStore"
 
 export default function HomePage() {

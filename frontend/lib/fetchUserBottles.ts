@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Bottle } from '@/types/bottle';
+import { Bottle, ipfsToHttp, fetchBottleMetadata } from './bottleUtil';
 
 export async function fetchUserBottles(address: string): Promise<Bottle[]> {
   try {
@@ -32,37 +32,34 @@ export async function fetchUserBottles(address: string): Promise<Bottle[]> {
       return [];
     }
 
-    const { bottleClaimeds, bottleMinteds } = response.data.data;
+    const { bottleClaimeds, bottleMinteds }: {
+      bottleClaimeds: { tokenId: string; blockTimestamp: string }[];
+      bottleMinteds: { tokenId: string; tokenURI: string }[];
+    } = response.data.data;
 
     if (!bottleClaimeds || !bottleMinteds) {
       console.error('Missing required data:', { bottleClaimeds, bottleMinteds });
       return [];
     }
 
-    const bottles: Bottle[] = await Promise.all(
-      bottleClaimeds.map(async (claimed: { tokenId: string; blockTimestamp: string }) => {
+    const bottles: (Bottle | null)[] = await Promise.all(
+      bottleClaimeds.map(async (claimed): Promise<Bottle | null> => {
         const minted = bottleMinteds.find(
-          (minted: { tokenId: string }) => minted.tokenId === claimed.tokenId
+          (minted) => minted.tokenId === claimed.tokenId
         );
-
         if (!minted) {
           console.warn(`No minted bottle found for tokenId: ${claimed.tokenId}`);
           return null;
         }
-
         try {
-          const tokenURI = minted.tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/');
-          const metadataResponse = await axios.get(tokenURI);
-          const metadata = metadataResponse.data;
-
+          const metadata = await fetchBottleMetadata(minted.tokenURI);
           return {
             id: claimed.tokenId,
-            name: metadata.name || '無名の小瓶',
-            description: metadata.description || '',
-            message: metadata.message || '',
-            image: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : null,
+            tokenId: claimed.tokenId,
+            tokenURI: minted.tokenURI,
+            ...metadata,
             date: new Date(parseInt(claimed.blockTimestamp) * 1000).toLocaleDateString('ja-JP'),
-            status: '所有中'
+            status: '所有中',
           };
         } catch (error) {
           console.error(`Error fetching metadata for tokenId ${claimed.tokenId}:`, error);
