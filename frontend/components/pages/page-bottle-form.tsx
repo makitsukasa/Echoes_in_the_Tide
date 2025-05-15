@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,16 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const { throwBottle, isLoading, error } = useBottle()
   const { setIsThrowModalOpen } = useBottleStore()
+  const [filebaseConfigured, setFilebaseConfigured] = useState(false)
+
+  useEffect(() => {
+    // クライアント側でlocalStorageを参照
+    if (typeof window !== "undefined") {
+      const key = localStorage.getItem("filebase_key")
+      const secret = localStorage.getItem("filebase_secret")
+      setFilebaseConfigured(!!(key && secret))
+    }
+  }, [])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -93,30 +103,35 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
                   required
                 />
               </div>
-
-              {/* <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="image">画像（任意）</Label>
-                <div className="flex items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById("image")?.click()}
-                    className="w-full"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    画像をアップロード
-                  </Button>
-                  <Input id="image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                </div>
-
+                {!filebaseConfigured && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    画像をアップロードするには設定よりfilebase apiを登録してください
+                  </div>
+                )}
+                {filebaseConfigured && (
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => filebaseConfigured && document.getElementById("image")?.click()}
+                      className="w-full"
+                      disabled={!filebaseConfigured}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      画像をアップロード
+                    </Button>
+                    <Input id="image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                  </div>
+                )}
                 {preview && (
                   <div className="mt-4 overflow-hidden rounded-md aspect-video bg-blue-50">
                     <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
                   </div>
                 )}
-              </div> */}
+              </div>
             </div>
-
             <div className="mt-6">
               <Button type="submit" className="w-full" disabled={isLoading || !message.trim()}>
                 {isLoading ? (

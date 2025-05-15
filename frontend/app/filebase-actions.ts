@@ -17,8 +17,8 @@ type FormData = FormDataWithImage | FormDataWithoutImage;
 
 export async function uploadToIPFS(
   data: FormData,
-  s3Key: string,
-  s3Secret: string
+  key: string,
+  secret: string
 ): Promise<string> {
   try {
     // メタデータを準備
@@ -28,21 +28,21 @@ export async function uploadToIPFS(
     };
 
     // ObjectManagerの初期化
-    const objectManager = new ObjectManager(s3Key, s3Secret, {
+    const objectManager = new ObjectManager(key, secret, {
       bucket: "echoes-in-the-tide"
     });
 
     // 画像がある場合は先にアップロード
-    // if ('image' in data && data.image) {
-    //   const imageBuffer = await data.image.arrayBuffer();
-    //   const uploadedImage = await objectManager.upload(
-    //     `bottle_${Date.now()}/${data.image.name}`,
-    //     Buffer.from(imageBuffer),
-    //     {},
-    //     {}
-    //   );
-    //   Object.assign(metadata, { image: `ipfs://${uploadedImage.cid}` });
-    // }
+    if ('image' in data && data.image) {
+      const imageBuffer = await data.image.arrayBuffer();
+      const uploadedImage = await objectManager.upload(
+        `bottle_${Date.now()}/${data.image.name}`,
+        Buffer.from(imageBuffer),
+        {},
+        {}
+      );
+      Object.assign(metadata, { image: `ipfs://${uploadedImage.cid}` });
+    }
 
     // メタデータをJSONとしてアップロード
     const uploadedMetadata = await objectManager.upload(

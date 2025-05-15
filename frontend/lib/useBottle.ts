@@ -4,17 +4,17 @@ import { uploadToIPFS } from "../app/filebase-actions"
 
 // Filebaseの設定状態を確認する関数
 function isFilebaseConfigured(): boolean {
-  const s3Key = localStorage.getItem('filebase_s3_key')
-  const s3Secret = localStorage.getItem('filebase_s3_secret')
-  return !!(s3Key && s3Secret)
+  const key = localStorage.getItem('filebase_key')
+  const secret = localStorage.getItem('filebase_secret')
+  return !!(key && secret)
 }
 
 // FilebaseのAPIキーを取得する関数
-function getFilebaseCredentials(): { s3Key: string; s3Secret: string } | null {
-  const s3Key = localStorage.getItem('filebase_s3_key')
-  const s3Secret = localStorage.getItem('filebase_s3_secret')
-  if (!s3Key || !s3Secret) return null
-  return { s3Key, s3Secret }
+function getFilebaseCredentials(): { key: string; secret: string } | null {
+  const key = localStorage.getItem('filebase_key')
+  const secret = localStorage.getItem('filebase_secret')
+  if (!key || !secret) return null
+  return { key, secret }
 }
 
 // メタデータをBase64エンコードされたJSONに変換する関数
@@ -22,7 +22,7 @@ function createOnChainMetadata(data: { name: string; description: string; image?
   const metadata = {
     name: data.name,
     description: data.description,
-    // 画像は一旦省略
+    // 画像はオンチェーンには保存しない
   }
 
   const jsonString = JSON.stringify(metadata)
@@ -59,8 +59,8 @@ export function useBottle() {
             description: formData.description,
             image: formData.image
           },
-          credentials.s3Key,
-          credentials.s3Secret
+          credentials.key,
+          credentials.secret
         )
       } else {
         // Filebaseが設定されていない場合はオンチェーンに書き込む

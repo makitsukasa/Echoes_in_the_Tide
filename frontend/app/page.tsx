@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, Wallet, Menu, Home, Send, ShoppingBasketIcon as Collection, History } from "lucide-react"
+import { Info, Wallet, Menu, Home, Send, ShoppingBasketIcon as Collection, History, Settings } from "lucide-react"
 
 // UIコンポーネントのインポート
 import { ConnectWallet } from "@/components/ui/connect-wallet"
@@ -17,6 +17,7 @@ import { ThrowBottleModal } from "@/components/ThrowBottleModal"
 import { connectWallet, getWalletAddress, tryAutoConnect } from "@/lib/wallet"
 import { Bottle } from "@/lib/bottleUtil"
 import { useBottleStore } from "@/lib/bottleStore"
+import PageSettings from "@/components/pages/page-settings"
 
 export default function HomePage() {
   const [isConnected, setIsConnected] = useState(false)
@@ -125,6 +126,12 @@ export default function HomePage() {
         return (
           <div className="min-h-[70vh]">
             <PageBottleMemories isConnected={isConnected} />
+          </div>
+        )
+      case "settings":
+        return (
+          <div className="min-h-[70vh] flex flex-col items-center justify-center">
+            <PageSettings />
           </div>
         )
       default:
@@ -256,6 +263,20 @@ export default function HomePage() {
                   思い出す
                 </span>
               </Button> */}
+              <Button
+                variant={activeView === "settings" ? "default" : "ghost"}
+                className={`w-full justify-start ${activeView === "settings" ? "bg-white/30 text-blue-800 hover:bg-white/40" : "bg-transparent hover:bg-white/20"}`}
+                style={activeView === "settings" ? { backgroundColor: 'rgba(190, 240, 255, 0.4)' } : {}}
+                onClick={() => {
+                  setActiveView("settings")
+                  setMenuOpen(false)
+                }}
+              >
+                <Settings className="w-4 h-4 shrink-0" />
+                <span className={`ml-2 transition-opacity duration-300 ${showMenuText ? "opacity-100" : "opacity-0"}`}>
+                  設定
+                </span>
+              </Button>
             </nav>
           </div>
         </div>
