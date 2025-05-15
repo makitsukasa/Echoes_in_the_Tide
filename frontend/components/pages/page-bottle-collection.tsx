@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { ConnectWallet } from "@/components/ui/connect-wallet"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { MessageCircle, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAccount } from "wagmi"
@@ -41,17 +41,12 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
     setSelectedBottle(null)
   }
 
-  const handleConnectWallet = () => {
-    window.dispatchEvent(new CustomEvent('connectWallet'))
-  }
-
   if (!isConnected) {
     return (
-      <div className="flex flex-col items-center gap-4 p-10 text-center">
-        <h3 className="text-xl font-medium text-blue-800">あなたのコレクションを見るには</h3>
-        <p className="text-blue-700">ウォレットを接続してください</p>
-        <ConnectWallet onConnect={handleConnectWallet} />
-      </div>
+      <ConnectWalletSection
+        title="あなたのコレクションを見るには"
+        description="ウォレットを接続してください"
+      />
     )
   }
 
@@ -63,14 +58,17 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
       </div>
 
       {selectedBottle ? (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <div className="flex items-start justify-between mb-4">
-            <h3 className="text-lg font-medium text-blue-900">小瓶のメッセージ</h3>
-            <Button variant="ghost" className="text-sm text-blue-600 hover:text-blue-800" onClick={handleBackToList}>
-              戻る
-            </Button>
-          </div>
-
+        <Card className="p-6 bg-white rounded-lg shadow-md">
+          <CardHeader className="px-0 pt-0">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <CardTitle className="text-lg font-medium text-blue-900">小瓶のメッセージ</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleBackToList}>
+                戻る
+              </Button>
+            </div>
+          </CardHeader>
           {selectedBottle.image && (
             <div className="mb-4 overflow-hidden rounded-md aspect-video bg-blue-50">
               <img
@@ -80,14 +78,14 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
               />
             </div>
           )}
-
-          <p className="mb-4 text-gray-700">{selectedBottle.message || selectedBottle.description}</p>
-
-          <div className="flex items-center text-sm text-gray-500">
-            <Calendar className="w-4 h-4 mr-1" />
-            <span>拾った日: {selectedBottle.date || '不明'}</span>
-          </div>
-        </div>
+          <CardContent className="px-0 pt-4 pb-0">
+            <p className="mb-6 text-gray-700">{selectedBottle.message || selectedBottle.description}</p>
+            <div className="flex items-center text-sm text-gray-500">
+              <Calendar className="w-4 h-4 mr-1" />
+              <span>拾った日: {selectedBottle.date || '不明'}</span>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {bottles.map((bottle) => (
@@ -110,9 +108,11 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
                   <MessageCircle className="w-4 h-4 mt-1 text-blue-500 shrink-0" />
                   <p className="text-sm text-gray-700 line-clamp-2">{bottle.message || bottle.description}</p>
                 </div>
-                <div className="flex items-center mt-2 text-xs text-gray-500">
-                  <Calendar className="w-3 h-3 mr-1" />
-                  <span>{bottle.date || '不明'}</span>
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    <span>{bottle.date || '不明'}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

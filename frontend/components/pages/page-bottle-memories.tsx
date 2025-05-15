@@ -2,20 +2,21 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ConnectWallet } from "@/components/ui/connect-wallet"
+import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { MessageCircle, Calendar, Heart, Share2, Anchor } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Bottle } from "@/types/bottle"
 
 interface PageBottleMemoriesProps {
   isConnected: boolean
 }
 
 // モックデータ
-const mockSentBottles = [
+const mockSentBottles: Bottle[] = [
   {
-    id: 101,
+    id: "101",
     message: "遠い誰かへ。あなたの一日が、穏やかな波のように優しいものでありますように。",
     image: "/placeholder.svg?height=200&width=400",
     date: "2023-04-10",
@@ -23,15 +24,15 @@ const mockSentBottles = [
     interactions: 0,
   },
   {
-    id: 102,
+    id: "102",
     message: "星空を見上げると、同じ空の下で誰かも見上げているかもしれない。そう思うと不思議な気持ちになります。",
-    image: null,
+    image: undefined,
     date: "2023-05-22",
     status: "拾われた",
     interactions: 1,
   },
   {
-    id: 103,
+    id: "103",
     message:
       "今日、海辺で見つけた小さな貝殻。誰かに届けたくて、この小瓶に入れました。あなたにとって、幸運の象徴になりますように。",
     image: "/placeholder.svg?height=200&width=400",
@@ -40,7 +41,7 @@ const mockSentBottles = [
     interactions: 0,
   },
   {
-    id: 104,
+    id: "104",
     message: "雨の日は、窓辺で本を読むのが好きです。あなたはどんな過ごし方が好きですか？",
     image: "/placeholder.svg?height=200&width=400",
     date: "2023-07-03",
@@ -50,7 +51,7 @@ const mockSentBottles = [
 ]
 
 export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
-  const [selectedBottle, setSelectedBottle] = useState<any>(null)
+  const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [bottles, setBottles] = useState(mockSentBottles)
 
@@ -64,7 +65,7 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
           filterStatus === "floating" ? bottle.status === "漂流中" : bottle.status === "拾われた",
         )
 
-  const handleSelectBottle = (bottle: any) => {
+  const handleSelectBottle = (bottle: Bottle) => {
     setSelectedBottle(bottle)
   }
 
@@ -77,18 +78,12 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
     alert(`小瓶ID: ${bottle.id}の旅を共有します`)
   }
 
-  const handleConnectWallet = () => {
-    // 親コンポーネントのhandleConnect関数を呼び出す
-    window.dispatchEvent(new CustomEvent('connectWallet'))
-  }
-
   if (!isConnected) {
     return (
-      <div className="flex flex-col items-center gap-4 p-10 text-center">
-        <h3 className="text-xl font-medium text-blue-800">あなたの流した小瓶を思い出すには</h3>
-        <p className="text-blue-700">ウォレットを接続してください</p>
-        <ConnectWallet onConnect={handleConnectWallet} />
-      </div>
+      <ConnectWalletSection
+        title="あなたの流した小瓶を思い出すには"
+        description="ウォレットを接続してください"
+      />
     )
   }
 
@@ -162,7 +157,7 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">
                         {
-                          new Date(new Date(selectedBottle.date).getTime() + 1000 * 60 * 60 * 24 * 14)
+                          new Date(new Date(selectedBottle.date || "1970-01-01").getTime() + 1000 * 60 * 60 * 24 * 14)
                             .toISOString()
                             .split("T")[0]
                         }

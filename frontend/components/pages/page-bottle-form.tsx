@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { ConnectWallet } from "@/components/ui/connect-wallet"
+import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { Send, Upload, Sparkles } from "lucide-react"
 import { useBottle } from "@/lib/useBottle"
 import { useBottleStore } from "@/lib/bottleStore"
@@ -65,10 +65,6 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
     }
   }
 
-  const handleConnectWallet = () => {
-    window.dispatchEvent(new CustomEvent('connectWallet'))
-  }
-
   return (
     <Card className="w-full max-w-md bg-white/90 backdrop-blur-sm">
       <CardHeader>
@@ -79,10 +75,10 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
       </CardHeader>
       <CardContent>
         {!isConnected ? (
-          <div className="flex flex-col items-center gap-4 p-6 text-center">
-            <p className="text-blue-700">小瓶を流すにはウォレットの接続が必要です</p>
-            <ConnectWallet onConnect={handleConnectWallet} />
-          </div>
+          <ConnectWalletSection
+            title="小瓶を流すには"
+            description="ウォレットの接続が必要です"
+          />
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4">
