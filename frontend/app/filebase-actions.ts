@@ -32,11 +32,13 @@ export async function uploadToIPFS(
       bucket: "echoes-in-the-tide"
     });
 
+    const bottleName = `bottle_${Date.now()}`;
+
     // 画像がある場合は先にアップロード
     if ('image' in data && data.image) {
       const imageBuffer = await data.image.arrayBuffer();
       const uploadedImage = await objectManager.upload(
-        `bottle_${Date.now()}/${data.image.name}`,
+        `${bottleName}/${data.image.name}`,
         Buffer.from(imageBuffer),
         {},
         {}
@@ -46,7 +48,7 @@ export async function uploadToIPFS(
 
     // メタデータをJSONとしてアップロード
     const uploadedMetadata = await objectManager.upload(
-      `bottle_${Date.now()}/0.json`,
+      `${bottleName}/0.json`,
       Buffer.from(JSON.stringify(metadata, null, 2)),
       {},
       {}
