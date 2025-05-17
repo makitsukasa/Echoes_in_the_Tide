@@ -21,12 +21,12 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       );
 
       // ガス代の見積もりを取得
-      const gasEstimate = await oceanContract.mintAndAssign.estimateGas(tokenURI);
-      console.log('Estimated gas:', gasEstimate.toString());
+      // const gasEstimate = await oceanContract.mintAndAssign.estimateGas(tokenURI);
+      // console.log('Estimated gas:', gasEstimate.toString());
 
       // トランザクションの送信
       const tx = await oceanContract.mintAndAssign(tokenURI, {
-        gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
+        // gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
       });
 
       console.log('Transaction sent:', tx.hash);
@@ -86,12 +86,12 @@ export async function claimBottle(tokenId: string): Promise<ethers.ContractTrans
       );
 
       // ガス代の見積もりを取得
-      const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
-      console.log('Estimated gas:', gasEstimate.toString());
+      // const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
+      // console.log('Estimated gas:', gasEstimate.toString());
 
       // トランザクションの送信
       const tx = await oceanContract.claim(tokenId, {
-        gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
+        // gasLimit: Math.floor(Number(gasEstimate) * 1.5) // 50%のバッファを追加
       });
 
       console.log('Transaction sent:', tx.hash);
