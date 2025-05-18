@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://makitsukasa.github.io/Echoes_in_the_Tide/frontend",
+  "homepage": "https://makitsukasa.github.io/Echoes_in_the_Tide",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
   },
   ...(isGithubActions && {
     output: 'export',
-    basePath: '/Echoes_in_the_Tide/frontend',
-    assetPrefix: '/Echoes_in_the_Tide/frontend',
+    basePath: '/Echoes_in_the_Tide',
+    assetPrefix: '/Echoes_in_the_Tide',
   }),
 };
 
