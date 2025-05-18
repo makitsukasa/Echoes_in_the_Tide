@@ -9,6 +9,7 @@ import { fetchBottles } from "@/lib/fetchBottles"
 import { Bottle } from "@/lib/bottleUtil"
 import { useAccount } from "wagmi"
 import Image from "next/image"
+import { useRouter } from 'next/router'
 
 interface PageOceanProps {
   onBottleClaimed?: (bottle: Bottle) => void
@@ -17,6 +18,7 @@ interface PageOceanProps {
 
 export function PageOcean({ onBottleClaimed, isConnected }: PageOceanProps) {
   const { address } = useAccount();
+  const { basePath } = useRouter();
   const { data: bottles = [] } = useSWR(
     address ? ['/api/bottles', address] : '/api/bottles',
     () => fetchBottles(address),
@@ -50,7 +52,7 @@ export function PageOcean({ onBottleClaimed, isConnected }: PageOceanProps) {
     <div className="relative w-full h-[calc(100vh-4rem)]">
       <div className="fixed inset-0 w-full h-full overflow-hidden">
         <Image
-          src="/ocean.webp"
+          src={`${basePath}/ocean.webp`}
           alt="Ocean background"
           className="w-full h-full object-cover object-[center_bottom]"
           style={{
@@ -84,7 +86,7 @@ export function PageOcean({ onBottleClaimed, isConnected }: PageOceanProps) {
                   onClick={() => onBottleClaimed?.(bottle)}
                 >
                   <Image
-                    src="/bottle.webp"
+                    src={`${basePath}/bottle.webp`}
                     alt="Bottle"
                     className="object-contain w-full h-full"
                     width={160}
