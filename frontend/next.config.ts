@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   },
   basePath: '/Echoes_in_the_Tide',
   assetPrefix: '/Echoes_in_the_Tide',
+  env: {
+    NEXT_PUBLIC_BASE_PATH: '/Echoes_in_the_Tide',
+  }
 };
 
 export default nextConfig;
