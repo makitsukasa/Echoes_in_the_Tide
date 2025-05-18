@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Upload, Loader2 } from "lucide-react"
 import { useState, useCallback } from "react"
+import Image from "next/image"
 
 interface ThrowBottleModalProps {
   isOpen: boolean
@@ -17,7 +18,8 @@ export function ThrowBottleModal({ isOpen, onClose }: ThrowBottleModalProps) {
   const [message, setMessage] = useState("")
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const { throwBottle, isLoading, error } = useBottle()
+  const [isLoading, setIsLoading] = useState(false)
+  const { throwBottle } = useBottle()
   const { setIsThrowModalOpen } = useBottleStore()
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -29,6 +31,7 @@ export function ThrowBottleModal({ isOpen, onClose }: ThrowBottleModalProps) {
     }
 
     try {
+      setIsLoading(true)
       await throwBottle({
         name: "Echoes in the Tide",
         description: message,
@@ -42,6 +45,8 @@ export function ThrowBottleModal({ isOpen, onClose }: ThrowBottleModalProps) {
     } catch (error) {
       console.error("小瓶を流す際にエラーが発生しました", error)
       alert("小瓶を流せませんでした。もう一度お試しください。")
+    } finally {
+      setIsLoading(false)
     }
   }, [message, image, throwBottle, setIsThrowModalOpen])
 
@@ -101,7 +106,13 @@ export function ThrowBottleModal({ isOpen, onClose }: ThrowBottleModalProps) {
 
               {preview && (
                 <div className="mt-4 overflow-hidden rounded-md aspect-video bg-blue-50">
-                  <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
+                  <Image
+                    src={preview || "/placeholder.svg"}
+                    alt="Preview"
+                    className="object-cover w-full h-full"
+                    width={400}
+                    height={200}
+                  />
                 </div>
               )}
             </div>

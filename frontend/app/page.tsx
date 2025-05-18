@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Info, Wallet, Menu, Home, Send, ShoppingBasketIcon as Collection, History, Settings } from "lucide-react"
+import { Info, Wallet, Menu, Home, Send, ShoppingBasketIcon as Collection, Settings } from "lucide-react"
 
 // UIコンポーネントのインポート
 import { ConnectWallet } from "@/components/ui/connect-wallet"

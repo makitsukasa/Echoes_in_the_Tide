@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Bottle, ipfsToHttp, fetchBottleMetadata } from './bottleUtil';
+import { Bottle, fetchBottleMetadata } from './bottleUtil';
 
 export async function fetchUserBottles(address: string): Promise<Bottle[]> {
   try {

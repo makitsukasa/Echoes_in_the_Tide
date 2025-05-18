@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bottle } from "@/lib/bottleUtil"
+import Image from "next/image"
 
 interface PageBottleMemoriesProps {
   isConnected: boolean
@@ -53,7 +54,7 @@ const mockSentBottles: Bottle[] = [
 export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [bottles, setBottles] = useState(mockSentBottles)
+  const [bottles] = useState(mockSentBottles)
 
   // 実際のアプリケーションでは、ここでウォレットアドレスに基づいて
   // ブロックチェーンやAPIからボトルデータを取得する処理を実装
@@ -73,7 +74,7 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
     setSelectedBottle(null)
   }
 
-  const handleShareBottle = (bottle: any) => {
+  const handleShareBottle = (bottle: Bottle) => {
     // 共有機能の実装
     alert(`小瓶ID: ${bottle.id}の旅を共有します`)
   }
@@ -134,10 +135,12 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
 
           {selectedBottle.image && (
             <div className="mb-4 overflow-hidden rounded-md aspect-video bg-blue-50">
-              <img
+              <Image
                 src={selectedBottle.image || "/placeholder.svg"}
                 alt="Bottle content"
                 className="object-cover w-full h-full"
+                width={400}
+                height={200}
               />
             </div>
           )}
@@ -206,10 +209,12 @@ export function PageBottleMemories({ isConnected }: PageBottleMemoriesProps) {
                 >
                   {bottle.image && (
                     <div className="aspect-video bg-blue-50">
-                      <img
+                      <Image
                         src={bottle.image || "/placeholder.svg"}
                         alt="Bottle preview"
                         className="object-cover w-full h-full"
+                        width={400}
+                        height={200}
                       />
                     </div>
                   )}

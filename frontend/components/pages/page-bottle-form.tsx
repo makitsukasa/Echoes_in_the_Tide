@@ -11,6 +11,8 @@ import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { Send, Upload, Sparkles } from "lucide-react"
 import { useBottle } from "@/lib/useBottle"
 import { useBottleStore } from "@/lib/bottleStore"
+import Image from 'next/image'
+import { getCredentialsFromSession } from "@/lib/encryption"
 
 interface PageBottleFormProps {
   isConnected: boolean
@@ -20,16 +22,20 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
   const [message, setMessage] = useState("")
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const { throwBottle, isLoading, error } = useBottle()
+  const { throwBottle, isLoading } = useBottle()
   const { setIsThrowModalOpen } = useBottleStore()
   const [filebaseConfigured, setFilebaseConfigured] = useState(false)
 
   useEffect(() => {
-    // クライアント側でlocalStorageを参照
-    if (typeof window !== "undefined") {
-      const key = localStorage.getItem("filebase_key")
-      const secret = localStorage.getItem("filebase_secret")
-      setFilebaseConfigured(!!(key && secret))
+    // セッションストレージから直接確認
+    const credentials = getCredentialsFromSession()
+    if (credentials) {
+      setFilebaseConfigured(true)
+    } else {
+      // localStorageに暗号化されたデータがあるか確認
+      const hasEncryptedData = localStorage.getItem("encryptedFilebaseKey") &&
+                             localStorage.getItem("encryptedFilebaseSecret")
+      setFilebaseConfigured(!!hasEncryptedData)
     }
   }, [])
 
@@ -105,19 +111,17 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="image">画像（任意）</Label>
-                {!filebaseConfigured && (
+                {!filebaseConfigured ? (
                   <div className="text-xs text-gray-500 mt-1">
                     画像をアップロードするには設定よりfilebase apiを登録してください
                   </div>
-                )}
-                {filebaseConfigured && (
+                ) : (
                   <div className="flex items-center gap-4">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => filebaseConfigured && document.getElementById("image")?.click()}
+                      onClick={() => document.getElementById("image")?.click()}
                       className="w-full"
-                      disabled={!filebaseConfigured}
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       画像をアップロード
@@ -127,7 +131,13 @@ export function PageBottleForm({ isConnected }: PageBottleFormProps) {
                 )}
                 {preview && (
                   <div className="mt-4 overflow-hidden rounded-md aspect-video bg-blue-50">
-                    <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
+                    <Image
+                      src={preview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-t-lg"
+                      width={400}
+                      height={200}
+                    />
                   </div>
                 )}
               </div>

@@ -1,6 +1,3 @@
-"use client"
-
-// Inspired by react-hot-toast library
 import * as React from "react"
 
 import type {
@@ -18,35 +15,37 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-type ActionTypes = {
-  ADD_TOAST: "ADD_TOAST"
-  UPDATE_TOAST: "UPDATE_TOAST"
-  DISMISS_TOAST: "DISMISS_TOAST"
-  REMOVE_TOAST: "REMOVE_TOAST"
-}
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
 
 let count = 0
 
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
 
+type ActionType = typeof actionTypes
+
 type Action =
   | {
-      type: ActionTypes["ADD_TOAST"]
+      type: ActionType["ADD_TOAST"]
       toast: ToasterToast
     }
   | {
-      type: ActionTypes["UPDATE_TOAST"]
+      type: ActionType["UPDATE_TOAST"]
       toast: Partial<ToasterToast>
     }
   | {
-      type: ActionTypes["DISMISS_TOAST"]
+      type: ActionType["DISMISS_TOAST"]
       toastId?: ToasterToast["id"]
     }
   | {
-      type: ActionTypes["REMOVE_TOAST"]
+      type: ActionType["REMOVE_TOAST"]
       toastId?: ToasterToast["id"]
     }
 
@@ -91,8 +90,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {

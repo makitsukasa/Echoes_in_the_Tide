@@ -5,32 +5,60 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { saveEncryptedCredentials, getCredentialsFromSession } from "@/lib/encryption"
 
 export default function PageSettings() {
   const [key, setKey] = useState("")
   const [secret, setSecret] = useState("")
   const [saved, setSaved] = useState(false)
   const [deleted, setDeleted] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isConfigured, setIsConfigured] = useState(false)
 
   useEffect(() => {
-    setKey(localStorage.getItem("filebase_key") || "")
-    setSecret(localStorage.getItem("filebase_secret") || "")
+    // セッションストレージから直接確認
+    const credentials = getCredentialsFromSession()
+    if (credentials) {
+      setKey(credentials.key)
+      setSecret(credentials.secret)
+      setIsConfigured(true)
+    } else {
+      // localStorageに暗号化されたデータがあるか確認
+      const hasEncryptedData = localStorage.getItem("encryptedFilebaseKey") &&
+                             localStorage.getItem("encryptedFilebaseSecret")
+      setIsConfigured(!!hasEncryptedData)
+    }
   }, [])
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem("filebase_key", key)
-    localStorage.setItem("filebase_secret", secret)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await saveEncryptedCredentials(key, secret)
+      setSaved(true)
+      setIsConfigured(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "保存に失敗しました")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleDelete = () => {
-    localStorage.removeItem("filebase_key")
-    localStorage.removeItem("filebase_secret")
+    localStorage.removeItem("encryptedFilebaseKey")
+    localStorage.removeItem("encryptedFilebaseSecret")
+    sessionStorage.removeItem("encryptedFilebaseKey")
+    sessionStorage.removeItem("encryptedFilebaseSecret")
+    sessionStorage.removeItem("sessionFilebaseKey")
+    sessionStorage.removeItem("sessionFilebaseSecret")
     setKey("")
     setSecret("")
     setDeleted(true)
+    setIsConfigured(false)
     setTimeout(() => setDeleted(false), 2000)
   }
 
@@ -44,19 +72,43 @@ export default function PageSettings() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="filebase-key">Filebase Key</Label>
-              <Input id="filebase-key" value={key} onChange={e => setKey(e.target.value)} autoComplete="off" />
+              {isConfigured && !saved && !deleted && (
+                <div className="text-green-600 text-sm">Filebase API情報が保存されています</div>
+              )}
+              <Input
+                id="filebase-key"
+                value={key}
+                onChange={e => setKey(e.target.value)}
+                autoComplete="off"
+                disabled={isLoading}
+              />
             </div>
             <div>
               <Label htmlFor="filebase-secret">Filebase Secret</Label>
-              <Input id="filebase-secret" value={secret} onChange={e => setSecret(e.target.value)} autoComplete="off" type="password" />
+              <Input
+                id="filebase-secret"
+                value={secret}
+                onChange={e => setSecret(e.target.value)}
+                autoComplete="off"
+                type="password"
+                disabled={isLoading}
+              />
             </div>
-            {/* 今後の拡張用にここに他の設定項目を追加可能 */}
+            {error && <div className="text-red-600 text-sm">{error}</div>}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">保存</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "保存中..." : "保存"}
+            </Button>
           </CardFooter>
           <div className="flex flex-col items-center gap-2 mt-2">
-            <Button type="button" variant="destructive" className="w-full" onClick={handleDelete}>
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
               Filebase API情報を消去
             </Button>
             {deleted && <div className="text-center text-red-600 py-2">消去しました</div>}

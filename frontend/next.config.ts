@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+  // GitHub Pagesでのデプロイに対応するための設定
+  output: 'export',
+  images: {
+    unoptimized: true,
   },
 };
 

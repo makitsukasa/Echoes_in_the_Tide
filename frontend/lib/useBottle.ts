@@ -1,20 +1,25 @@
 import { useState, useCallback, useRef } from "react"
 import { mintAndAssignToOcean, claimBottle as claimBottleContract } from "./ocean-contract"
-import { uploadToIPFS } from "../app/filebase-actions"
+import { uploadToIPFS } from "./filebase-client"
+import { getCredentialsFromSession, decryptAndStoreCredentialsInSession } from "./encryption"
 
 // Filebaseの設定状態を確認する関数
-function isFilebaseConfigured(): boolean {
-  const key = localStorage.getItem('filebase_key')
-  const secret = localStorage.getItem('filebase_secret')
-  return !!(key && secret)
+async function isFilebaseConfigured(): Promise<boolean> {
+  const credentials = getCredentialsFromSession()
+  if (credentials) return true
+
+  // セッションストレージにない場合は復号を試みる
+  const decrypted = await decryptAndStoreCredentialsInSession()
+  return !!decrypted
 }
 
 // FilebaseのAPIキーを取得する関数
-function getFilebaseCredentials(): { key: string; secret: string } | null {
-  const key = localStorage.getItem('filebase_key')
-  const secret = localStorage.getItem('filebase_secret')
-  if (!key || !secret) return null
-  return { key, secret }
+async function getFilebaseCredentials(): Promise<{ key: string; secret: string } | null> {
+  const credentials = getCredentialsFromSession()
+  if (credentials) return credentials
+
+  // セッションストレージにない場合は復号を試みる
+  return await decryptAndStoreCredentialsInSession()
 }
 
 // メタデータをBase64エンコードされたJSONに変換する関数
@@ -49,8 +54,8 @@ export function useBottle() {
       let tokenURI: string
 
       // Filebaseが設定されている場合はFilebaseを使用
-      if (isFilebaseConfigured()) {
-        const credentials = getFilebaseCredentials()
+      if (await isFilebaseConfigured()) {
+        const credentials = await getFilebaseCredentials()
         if (!credentials) throw new Error('Filebaseの認証情報が取得できません')
 
         tokenURI = await uploadToIPFS(

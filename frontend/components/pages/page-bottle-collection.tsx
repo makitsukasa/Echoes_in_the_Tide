@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ConnectWalletSection } from "@/components/ui/ConnectWalletSection"
 import { MessageCircle, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAccount } from "wagmi"
 import { Bottle } from "@/lib/bottleUtil"
 import { fetchUserBottles } from "@/lib/fetchUserBottles"
+import Image from 'next/image'
 
 interface PageBottleCollectionProps {
   isConnected: boolean
@@ -71,10 +72,12 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
           </CardHeader>
           {selectedBottle.image && (
             <div className="mb-4 overflow-hidden rounded-md aspect-video bg-blue-50">
-              <img
+              <Image
                 src={selectedBottle.image || "/placeholder.svg"}
-                alt="Bottle content"
+                alt={selectedBottle.name || "Bottle content"}
                 className="object-cover w-full h-full"
+                width={400}
+                height={200}
               />
             </div>
           )}
@@ -96,10 +99,12 @@ export function PageBottleCollection({ isConnected }: PageBottleCollectionProps)
             >
               {bottle.image && (
                 <div className="aspect-video bg-blue-50">
-                  <img
+                  <Image
                     src={bottle.image || "/placeholder.svg"}
-                    alt="Bottle preview"
-                    className="object-cover w-full h-full"
+                    alt={bottle.name || "Bottle preview"}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                    width={400}
+                    height={200}
                   />
                 </div>
               )}

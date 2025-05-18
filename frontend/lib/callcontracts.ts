@@ -1,13 +1,15 @@
-import { BrowserProvider, Contract, ethers } from 'ethers';
+import { ethers } from 'ethers';
+import { OceanContract } from "./ocean-contract"
 
-// MetaMaskの型定義
+interface EthereumProvider {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+  on: (eventName: string, callback: (accounts: string[]) => void) => void
+  removeListener: (eventName: string, callback: (accounts: string[]) => void) => void
+}
+
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (eventName: string, callback: (accounts: string[]) => void) => void;
-      removeListener: (eventName: string, callback: (accounts: string[]) => void) => void;
-    };
+    ethereum?: EthereumProvider
   }
 }
 
@@ -45,67 +47,52 @@ const oceanABI = [
 ];
 
 // グローバルprovider/signer（キャッシュ用）
-let provider: BrowserProvider | null = null;
-let signer: ethers.JsonRpcSigner | null = null;
+const signer: ethers.JsonRpcSigner | null = null;
 
 // MetaMaskと接続する
 export async function connectWallet(): Promise<boolean> {
-  if (typeof window !== 'undefined' && window.ethereum) {
-    try {
-      // Polygon Amoyネットワークの設定
-      const chainId = '0x13882'; // Polygon AmoyのチェーンID
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId }],
-      });
-
-      provider = new BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      return true;
-    } catch (error) {
-      console.error('Error connecting to wallet:', error);
-      return false;
+  try {
+    if (typeof window === "undefined" || !window.ethereum) {
+      console.error("MetaMaskがインストールされていません")
+      return false
     }
-  } else {
-    alert('MetaMaskをインストールしてください');
-    return false;
+
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" })
+    return Array.isArray(accounts) && accounts.length > 0
+  } catch (error) {
+    console.error("ウォレットの接続に失敗しました:", error)
+    return false
   }
 }
 
 // 自動再接続を試みる
 export async function tryAutoConnect(): Promise<boolean> {
-  if (typeof window !== 'undefined' && window.ethereum) {
-    try {
-      // 既に接続されているアカウントを確認
-      const accounts = await window.ethereum.request({
-        method: 'eth_accounts'
-      });
-
-      if (accounts.length > 0) {
-        // 接続済みの場合は自動的にproviderとsignerを初期化
-        provider = new BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
-        return true;
-      }
-    } catch (error) {
-      console.error('Error in auto connect:', error);
+  try {
+    if (typeof window === "undefined" || !window.ethereum) {
+      return false
     }
+
+    const accounts = await window.ethereum.request({ method: "eth_accounts" })
+    return Array.isArray(accounts) && accounts.length > 0
+  } catch (error) {
+    console.error("自動再接続に失敗しました:", error)
+    return false
   }
-  return false;
 }
 
 // ウォレットアドレスを取得する
 export async function getWalletAddress(): Promise<string | null> {
-  if (!signer) {
-    // まず自動再接続を試みる
-    const autoConnected = await tryAutoConnect();
-    if (!autoConnected) {
-      // 自動再接続に失敗した場合は手動接続を試みる
-      const connected = await connectWallet();
-      if (!connected) return null;
+  try {
+    if (typeof window === "undefined" || !window.ethereum) {
+      return null
     }
+
+    const accounts = await window.ethereum.request({ method: "eth_accounts" })
+    return Array.isArray(accounts) && accounts.length > 0 ? accounts[0] : null
+  } catch (error) {
+    console.error("ウォレットアドレスの取得に失敗しました:", error)
+    return null
   }
-  return await signer!.getAddress();
 }
 
 // OceanコントラクトにmintAndAssignを実行する
@@ -115,16 +102,6 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       const connected = await connectWallet();
       if (!connected) throw new Error('ウォレットに接続できませんでした');
     }
-
-    // コントラクトの初期化
-    console.log('Initializing contract...');
-    const oceanContract = new Contract(oceanAddress, oceanABI, signer!);
-    console.log('Contract initialized');
-
-    // ガス代の見積もり
-    // console.log('Estimating gas...');
-    // const gasEstimate = await oceanContract.mintAndAssign.estimateGas(tokenURI);
-    // console.log('Estimated gas:', gasEstimate.toString());
 
     // トランザクションの実行
     console.log('Executing transaction...');
@@ -137,7 +114,6 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       const tx = await signer!.sendTransaction({
         to: oceanAddress,
         data: data,
-        // gasLimit: gasEstimate
       });
 
       console.log('Transaction hash:', tx.hash);
@@ -146,11 +122,11 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
       console.log('Waiting for transaction receipt...');
       const receipt = await tx.wait();
       console.log('Transaction receipt:', receipt);
-      return receipt!;
+      return receipt as unknown as ethers.ContractTransactionReceipt;
     } catch (error) {
       console.error('Transaction execution error:', error);
-      if (error.data) {
-        console.error('Error data:', error.data);
+      if (error instanceof Error) {
+        console.error('Error data:', (error as unknown as { data: unknown }).data);
       }
       throw error;
     }
@@ -163,38 +139,19 @@ export async function mintAndAssignToOcean(tokenURI: string): Promise<ethers.Con
 // Oceanコントラクトのclaimを実行する
 export async function claimBottle(tokenId: string): Promise<ethers.ContractTransactionReceipt> {
   try {
-    if (!window.ethereum) {
-      throw new Error('MetaMaskがインストールされていません');
+    if (typeof window === "undefined" || !window.ethereum) {
+      throw new Error("MetaMaskがインストールされていません")
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const oceanContract = new ethers.Contract(
-      oceanAddress,
-      oceanABI,
-      signer
-    );
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner()
+    const oceanContract = new OceanContract(signer)
 
-    console.log('Claiming bottle with tokenId:', tokenId);
-
-    // ガス代の見積もりを取得
-    // const gasEstimate = await oceanContract.claim.estimateGas(tokenId);
-    // console.log('Estimated gas:', gasEstimate);
-
-    // トランザクションをより単純な形式で送信
-    const tx = await oceanContract.claim(tokenId, {
-      // gasLimit: gasEstimate
-    });
-
-    console.log('Transaction sent:', tx.hash);
-    const receipt = await tx.wait();
-    console.log('Transaction confirmed:', receipt);
-    return receipt!;
+    const receipt = await oceanContract.claimBottle(tokenId)
+    console.log("Transaction receipt:", receipt)
+    return receipt as unknown as ethers.ContractTransactionReceipt
   } catch (error) {
-    console.error('Error in claimBottle:', error);
-    if (error.code === -32603) {
-      throw new Error('トランザクションの実行に失敗しました。ネットワークの状態を確認してください。');
-    }
-    throw error;
+    console.error("小瓶を拾う際にエラーが発生しました:", error)
+    throw error
   }
 }

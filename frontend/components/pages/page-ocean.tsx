@@ -8,15 +8,16 @@ import { MessageCircle } from "lucide-react"
 import { fetchBottles } from "@/lib/fetchBottles"
 import { Bottle } from "@/lib/bottleUtil"
 import { useAccount } from "wagmi"
+import Image from "next/image"
 
 interface PageOceanProps {
-  isConnected: boolean
   onBottleClaimed?: (bottle: Bottle) => void
+  isConnected: boolean
 }
 
-export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
+export function PageOcean({ onBottleClaimed, isConnected }: PageOceanProps) {
   const { address } = useAccount();
-  const { data: bottles = [], error } = useSWR(
+  const { data: bottles = [] } = useSWR(
     address ? ['/api/bottles', address] : '/api/bottles',
     () => fetchBottles(address),
     {
@@ -48,7 +49,7 @@ export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
   return (
     <div className="relative w-full h-[calc(100vh-4rem)]">
       <div className="fixed inset-0 w-full h-full overflow-hidden">
-        <img
+        <Image
           src="/ocean.webp"
           alt="Ocean background"
           className="w-full h-full object-cover object-[center_bottom]"
@@ -58,46 +59,54 @@ export function PageOcean({ isConnected, onBottleClaimed }: PageOceanProps) {
             width: '100%',
             height: '100%'
           }}
+          fill
+          priority
         />
       </div>
       <div className="fixed inset-0 bg-black/20" />
       <div className="relative flex flex-col items-center justify-center h-full">
-        <Ocean />
-        {washedBottles.length > 0 ? (
-          <div className="absolute z-20 w-full h-full">
-            {washedBottles.map((bottle, index) => (
-              <div
-                key={bottle.id}
-                className="cursor-pointer absolute"
-                style={{
-                  top: index === 0 ? '85%' : index === 1 ? '90%' : '80%',
-                  left: index === 0 ? '45%' : index === 1 ? '20%' : '70%',
-                  transform: `translate(-50%, -50%) rotate(${
-                    index === 0 ? '10deg' : index === 1 ? '-5deg' : '-10deg'
-                  })`,
-                  width: 'min(12vw, 160px)',
-                  height: 'min(12vw, 160px)'
-                }}
-                onClick={() => onBottleClaimed?.(bottle)}
-              >
-                <img
-                  src={"/bottle.webp"}
-                  alt="Bottle"
-                  className="object-contain w-full h-full"
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="absolute z-20 flex flex-col items-center gap-4 text-center bottom-10">
-            {bottles.length > 0 && (
-              <Button variant="outline" className="bg-white/80 hover:bg-white" onClick={() => setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)))}>
-                <MessageCircle className="w-4 h-4 mr-2" />
-                小瓶を見る
-              </Button>
-            )}
-          </div>
-        )}
+        <Ocean>
+          {washedBottles.length > 0 ? (
+            <div className="absolute z-20 w-full h-full">
+              {washedBottles.map((bottle, index) => (
+                <div
+                  key={bottle.id}
+                  className="cursor-pointer absolute"
+                  style={{
+                    top: index === 0 ? '85%' : index === 1 ? '90%' : '80%',
+                    left: index === 0 ? '45%' : index === 1 ? '20%' : '70%',
+                    transform: `translate(-50%, -50%) rotate(${
+                      index === 0 ? '10deg' : index === 1 ? '-5deg' : '-10deg'
+                    })`,
+                    width: 'min(12vw, 160px)',
+                    height: 'min(12vw, 160px)'
+                  }}
+                  onClick={() => onBottleClaimed?.(bottle)}
+                >
+                  <Image
+                    src={"/bottle.webp"}
+                    alt="Bottle"
+                    className="object-contain w-full h-full"
+                    width={160}
+                    height={160}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="absolute z-20 flex flex-col items-center gap-4 text-center bottom-10">
+              {bottles.length > 0 && isConnected && (
+                <Button variant="outline" className="bg-white/80 hover:bg-white" onClick={() => setWashedBottles(bottles.slice(0, Math.min(3, bottles.length)))}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  小瓶を見る
+                </Button>
+              )}
+              {!isConnected && (
+                <p className="text-white text-lg">ウォレットを接続して小瓶を見つけましょう</p>
+              )}
+            </div>
+          )}
+        </Ocean>
       </div>
     </div>
   )

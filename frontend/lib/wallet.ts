@@ -1,13 +1,14 @@
 import { BrowserProvider, ethers } from 'ethers';
 
-// MetaMaskの型定義
+interface EthereumProvider {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+  on: (eventName: string, callback: (accounts: string[]) => void) => void
+  removeListener: (eventName: string, callback: (accounts: string[]) => void) => void
+}
+
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (eventName: string, callback: (accounts: string[]) => void) => void;
-      removeListener: (eventName: string, callback: (accounts: string[]) => void) => void;
-    };
+    ethereum?: EthereumProvider
   }
 }
 
@@ -46,7 +47,7 @@ export async function tryAutoConnect(): Promise<boolean> {
       // 既に接続されているアカウントを確認
       const accounts = await window.ethereum.request({
         method: 'eth_accounts'
-      });
+      }) as string[];
 
       if (accounts.length > 0) {
         // 接続済みの場合は自動的にproviderとsignerを初期化
@@ -76,7 +77,7 @@ export async function getWalletAddress(): Promise<string | null> {
 }
 
 // サインアーを取得する
-export async function getSigner() {
+export async function getSigner(): Promise<ethers.JsonRpcSigner | null> {
   if (!signer) {
     const autoConnected = await tryAutoConnect();
     if (!autoConnected) {

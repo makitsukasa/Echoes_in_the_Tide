@@ -2,8 +2,9 @@ import { useBottle } from "@/lib/useBottle"
 import { useBottleStore } from "@/lib/bottleStore"
 import { Bottle } from "@/lib/bottleUtil"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Loader2 } from "lucide-react"
+import Image from 'next/image'
 
 interface BottleDetailModalProps {
   data: Bottle | null
@@ -11,7 +12,7 @@ interface BottleDetailModalProps {
 }
 
 export function BottleDetailModal({ data, onClose }: BottleDetailModalProps) {
-  const { claimBottle, isLoading, error } = useBottle()
+  const { claimBottle, isLoading } = useBottle()
   const { setSelectedBottle } = useBottleStore()
 
   const handleClaim = async () => {
@@ -40,10 +41,12 @@ export function BottleDetailModal({ data, onClose }: BottleDetailModalProps) {
           {data.image && (
             <div className="space-y-2">
               <h4 className="font-medium">画像</h4>
-              <img
-                src={data.image}
-                alt="Bottle content"
-                className="w-full h-auto max-h-[50vh] object-contain rounded-md"
+              <Image
+                src={data.image || "/placeholder.svg"}
+                alt={data.name || "Bottle content"}
+                className="w-full h-48 object-cover rounded-t-lg"
+                width={400}
+                height={200}
               />
             </div>
           )}
