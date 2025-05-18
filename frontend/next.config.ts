@@ -7,10 +7,13 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  output: 'export',
   ...(isGithubActions && {
-    output: 'export',
     basePath: '/Echoes_in_the_Tide',
     assetPrefix: '/Echoes_in_the_Tide',
+    env: {
+      NEXT_PUBLIC_BASE_PATH: '/Echoes_in_the_Tide',
+    },
   }),
 };
 

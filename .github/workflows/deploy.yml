@@ -32,6 +32,8 @@ jobs:
           cd frontend
           echo "NEXT_PUBLIC_BASE_PATH=/Echoes_in_the_Tide" >> .env.local
           npm run build
+        env:
+          GITHUB_ACTIONS: 'true'
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
@@ -39,3 +41,5 @@ jobs:
           folder: frontend/out
           branch: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_ACTIONS: 'true'
