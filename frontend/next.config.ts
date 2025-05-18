@@ -1,16 +1,17 @@
 import type { NextConfig } from "next";
 
+const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+
 const nextConfig: NextConfig = {
-  // GitHub Pagesでのデプロイに対応するための設定
-  output: 'export',
+  // ローカル開発用の設定
   images: {
     unoptimized: true,
   },
-  basePath: '/Echoes_in_the_Tide',
-  assetPrefix: '/Echoes_in_the_Tide',
-  env: {
-    NEXT_PUBLIC_BASE_PATH: '/Echoes_in_the_Tide',
-  }
+  ...(isGithubActions && {
+    output: 'export',
+    basePath: '/Echoes_in_the_Tide/frontend',
+    assetPrefix: '/Echoes_in_the_Tide/frontend',
+  }),
 };
 
 export default nextConfig;
