@@ -84,7 +84,7 @@ export function PageOcean({ onBottleClaimed, isConnected }: PageOceanProps) {
                   onClick={() => onBottleClaimed?.(bottle)}
                 >
                   <Image
-                    src={"/bottle.webp"}
+                    src="/bottle.webp"
                     alt="Bottle"
                     className="object-contain w-full h-full"
                     width={160}

@@ -28,6 +28,7 @@ jobs:
       - name: Build
         run: |
           cd frontend
+          echo "NEXT_PUBLIC_BASE_PATH=/Echoes_in_the_Tide/frontend" >> .env.local
           npm run build
 
       - name: Deploy
