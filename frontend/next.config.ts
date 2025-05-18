@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  basePath: '/Echoes_in_the_Tide/frontend',
+  assetPrefix: '/Echoes_in_the_Tide/frontend/',
 };
 
 export default nextConfig;
