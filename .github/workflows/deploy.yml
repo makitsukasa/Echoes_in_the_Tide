@@ -27,9 +27,6 @@ jobs:
           cd frontend
           npm install
 
-      - name: Add .nojekyll
-        run: touch frontend/out/.nojekyll
-
       - name: Build
         run: |
           cd frontend
@@ -37,6 +34,9 @@ jobs:
           npm run build
         env:
           GITHUB_ACTIONS: 'true'
+
+      - name: Add .nojekyll
+        run: touch frontend/out/.nojekyll
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
