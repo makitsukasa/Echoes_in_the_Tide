@@ -27,6 +27,9 @@ jobs:
           cd frontend
           npm install
 
+      - name: Add .nojekyll
+        run: touch frontend/out/.nojekyll
+
       - name: Build
         run: |
           cd frontend
