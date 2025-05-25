@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import BottleModal from '../components/BottleModal';
 
 interface Bottle {
   id: string;
@@ -10,13 +11,6 @@ interface Bottle {
 export default function Home() {
   const [bottles, setBottles] = useState<Bottle[]>([]);
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
-
-  // モーダル外クリックで閉じる処理
-  const handleModalClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setSelectedBottle(null);
-    }
-  }, []);
 
   // 仮のデータ（後でThe Graphから取得するように変更）
   useEffect(() => {
@@ -76,28 +70,10 @@ export default function Home() {
 
         {/* モーダル */}
         {selectedBottle && (
-          <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-4 z-50"
-            onClick={handleModalClick}
-          >
-            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-              <h2 className="text-xl font-bold mb-4">小瓶の中身</h2>
-              <p className="text-gray-700 mb-4">{selectedBottle.description}</p>
-              {selectedBottle.image && (
-                <img
-                  src={selectedBottle.image}
-                  alt="小瓶の中身"
-                  className="w-full h-48 object-contain rounded-lg"
-                />
-              )}
-              <button
-                onClick={() => setSelectedBottle(null)}
-                className="mt-4 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
-              >
-                閉じる
-              </button>
-            </div>
-          </div>
+          <BottleModal
+            bottle={selectedBottle}
+            onClose={() => setSelectedBottle(null)}
+          />
         )}
       </main>
     </div>
