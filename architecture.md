@@ -1,96 +1,120 @@
-### 1. 📁 ディレクトリ構成と責務
+# 📐設計方針
+
+## 1. 📁 ディレクトリ構成と責務
 
 ```
-frontend/                    # クライアントだけで動くフロントエンド（next.js）。github-pagesで公開
-├── public/                  # 静的ファイル（favicon.ico、og-image.png、manifest.json）
+frontend/                    # フロントエンド (Next.js 13.4、React 18.2)
+│                            # GitHub Pages で公開するため、クライアントサイドのみで動作
+├── public/                  # 静的ファイル (favicon.ico, og-image.png, manifest.json)
 ├── src/                     # アプリ本体のソースコード
-│   ├── assets/              # 画像やスタイル
-│   ├── components/          # 再利用可能なUI部品
-│   │   ├── Navbar.tsx       # 画面切替えメニュー
+│   ├── assets/              # 画像、スタイルなど
+│   ├── components/          # 複数ページで再利用するUIコンポーネント
+│   │   ├── Navbar.tsx       # ナビゲーションメニュー（PC/モバイル両対応）
 │   │   └── ...
-│   ├── constants/           # 定数
-│   ├── features/            # ボトル、ウォレット、ユーザーなど「ドメインごとの機能」をまとめる
-│   │   ├── ocean/
-│   │   │   └── components/
-│   │   │       └── OceanView.tsx
-│   │   ├── bottle/
+│   ├── constants/           # 定数定義（例: contracts.ts）
+│   ├── features/            # ドメイン単位で機能を分類（bottle, ocean, walletなど）
+│   │   ├── bottle/          # 必要に応じて各種要素を分割
 │   │   │   ├── components/
-│   │   │   ├── hooks/       # useBottleList、useMintBottleなど、状態を持たないもの
-│   │   │   ├── stores/      # useBottleStore.tsなど、状態を管理するもの
-│   │   │   └── utils/       # createBottleData.ts
+│   │   │   ├── hooks/       # useBottleList など、状態を持たない処理
+│   │   │   ├── stores/      # useBottleStore.ts など、状態管理
+│   │   │   └── utils/       # createBottleData.ts など
+│   │   ├── ocean/components/OceanView.tsx
 │   │   └── ...
-│   ├── hooks/               # カスタムフック
-│   ├── app/
-│   │   ├── layout.tsx       # エントリーポイント
-│   │   ├── page.tsx         # トップページ(海を眺める画面)
-│   │   ├── throw
-│   │   │   └── page.tsx     # 小瓶を流す画面
-│   │   ├── ...
-│   │   └── provider.tsx     # 全体に必要なProvider（wagmiConfig, zustand など）をwrap
-│   ├── stores/              # Zustandなど状態管理
-│   └── utils/               # 汎用ユーティリティ関数
+│   ├── hooks/               # 共通的なカスタムフック（features以下に置けない汎用フック）
+│   ├── pages/               # Next.js の各ページ（Pages Router）
+│   │   ├── index.tsx        # トップページ（海を眺める）
+│   │   ├── throw.tsx        # 小瓶を流す画面
+│   │   ├── mybottles.tsx    # 拾った小瓶一覧
+│   │   ├── setting.tsx      # 設定画面
+│   │   └── _app.tsx         # 全体のProvider（Wagmi/Zustandなど）をラップ
+│   ├── stores/              # グローバルな状態管理（Zustand）
+│   ├── utils/               # 汎用ユーティリティ（コントラクト操作・subgraph・filebaseなど）
+│   └── types/               # 型定義（BottleType など）
+├── __tests__/               # おいおい
 ├── package.json
 ├── tsconfig.json
 └── README.md
-contracts/                   # スマートコントラクト（Foundry、openzeppelin-contracts）
-subgraph/                    # オンチェーンの情報をAPIから取得。 thegraph.com にデプロイ。
+contracts/                   # スマートコントラクト（Foundry + OpenZeppelin）
+subgraph/                    # The Graph (サブグラフ定義)
+
 ```
 
-### 2. 画面構成
+---
 
-- 🌊 海を眺める画面（初期画面） app/page.tsx、features/ocean/components/OceanView.tsx
-- 📝 小瓶を流す画面 app/throw/page.tsx、features/throw/components/ThrowView.tsx
-- 📜 拾った小瓶を眺める画面 app/mybottles/page.tsx、features/my-bottles/components/MyBottlesView.tsx
-- 🔧 設定画面 app/setting/page.tsx
-- 画面遷移はNavbar PC、モバイル両対応のハンバーガーメニュー
+## 2. 🖼️ 画面構成
 
-### 2. 🧠 状態管理の方針
+- 🌊 海を眺める画面（トップ） → `src/pages/index.tsx`, `features/ocean/components/OceanView.tsx`
+    - 動きやアニメーション効果はなし
+    - 背景画像は`public/ocean.webp`
+        - 画面が横長のとき、画像の下端が表示される
+        - 画面が縦長のとき、上下いっぱい、左右中央が表示される
+    - 小瓶の画像は`public/bottle.webp`
+        - page.tsxの小瓶は全て同じ見た目
+        - 画面下部に3つ画像を表示。3つとも角度を変える
+        - 画像クリックで小瓶の中身(description,image)表示
+- 📝 小瓶を流す画面 → `src/pages/throw.tsx`, `features/throw/components/ThrowView.tsx`
+- 📜 拾った小瓶を眺める画面 → `src/pages/mybottles.tsx`, `features/my-bottles/components/MyBottlesView.tsx`
+- ⚙️ 設定画面 → `src/pages/setting.tsx`
+    - filebaseのapiキーを入力、保存
+- 画面遷移はハンバーガーメニュー `src/components/Navbar.tsx`
+    - PC、モバイル両対応
 
-- **基本はZustandでグローバル状態を管理**
-    - 例: `useBottleStore.ts`, `useWalletStore.ts`
-- **Context APIは「階層的に共有すべきUI状態」限定で使用**
-    - 例: トースト、テーマ切り替えなど
-- **local state（useState）で十分な場合はuseStateで完結させる**
+---
 
-### 3. 🌐 Web3関連の方針
+## 3. 🧠 状態管理の方針
 
-- ネットワークはpolygon
-    - 開発時はamoy
-- **状態管理とコントラクト呼び出しには`wagmi`を使用**
-    - wagmiの`useContractRead`, `useContractWrite`はhooks内では直接使わず、共通の関数（frontend/src/utils/contract.ts）でラップして共通化
-    - walletconnectを使用
-    - アドレスやABIは `frontend/src/constants/contracts.ts` に定義して import
-- **スマートコントラクト呼び出しは `frontend/src/utils/contract.ts` に集約**
-    - `mintBottle()`, `claimBottle()` のように切り出す
+- **Zustand** を基本に使用（`src/stores/` または `features/*/stores/`）
+- **Context API** は UI 状態の共有（テーマ、トーストなど）に限定
+- コンポーネント内だけで完結する状態は**useState**を使用
 
-### 4. 🛰️ API設計方針（The Graph + IPFS）
+---
 
-- **The Graphを通じてオンチェーン状態を取得（Query）**
+## 4. 🌐 Web3方針
+
+- ネットワークは Polygon（開発中は Amoy テストネット）
+- **Wagmi** で状態管理とコントラクト呼び出しを統一
+    - `useContractRead` / `useContractWrite` は直接使わず `utils/contract.ts` に集約
+    - WalletConnect対応
+    - アドレスやABIは `frontend/src/constants/contracts.ts`
+- スマートコントラクト呼び出しは `frontend/src/utils/contract.ts` に集約
+    - 例: `mintBottle()`, `claimBottle()` など関数化
+
+---
+
+## 5. 🛰️ API設計（The Graph + IPFS）
+
+- **The Graph**を通じてオンチェーン状態を取得
     - fetchロジックは `frontend/src/utils/subgraph.ts` に共通化
-- **ファイルアップロードにIPFS（filebase）を使用**
-    - filebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約**
+- **Filebase** を使ってIPFSアップロード
+    - filebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約
+- 戻り値の型は `frontend/src/types/subgraph.ts`、`frontend/src/types/contract.ts`に明示
 
-### 5. ⚠️エラーハンドリングとUI
+---
 
-- **全てのトランザクションやAPI呼び出しにはtry/catchをつける**
-- **エラー表示は `frontend/src/utils/toast.ts` に統一**
-    - 成功: `toast.success("小瓶を流しました！")`
-    - 失敗: `toast.error("ネットワークエラー。もう一度お試しください")`
-- **UI操作不能時は `isLoading`, `disabled` を状態で管理**
+## 6. ⚠️ エラーハンドリングとUI
 
-### 6. 🔠 命名規則（Naming Conventions）
+- API・トランザクションすべてに `try/catch`
+- 通知は**Sonner** を使ったトースト通知に統一
+    - ラップ済みの関数: `utils/toast.ts`, `components/ToastProvider.tsx`
+- ローディング中の状態は `isLoading`, `disabled` で制御
+
+---
+
+## 7. 🔠 命名規則
 
 | 種類 | 規則 |
 | --- | --- |
-| コンポーネント | `PascalCase` (例: `BottleCard.tsx`) |
-| Hooks | `camelCase`, `use`プレフィックス (例: `useBottleList.ts`) |
-| 状態 | `camelCase` (例: `selectedBottleId`) |
-| ストア | `useXxxStore.ts` に統一 (Zustand) |
-| 定数 | `SCREAMING_SNAKE_CASE` (例: `CHAIN_ID`) |
-| 型定義 | `PascalCase` + 接尾辞 `Type` (例: `BottleType`) |
+| コンポーネント | PascalCase（例: `NavBar.tsx`） |
+| Hooks | camelCase（例: `useBottleList`） |
+| 状態変数 | camelCase（例: `selectedBottleId`） |
+| ストア | `useXxxStore.ts` に統一（Zustand） |
+| 定数 | SCREAMING_SNAKE_CASE（例: `CHAIN_ID`） |
+| 型定義 | PascalCase + `Type` 接尾辞（例: `BottleType`） |
 
-### 7. ♻️ 再利用性
+---
 
-- **同じロジック/スタイル/フックが複数箇所に登場したら即共通化**
-    - 例: `MintButton` や `BottleImage` は `components/` に
-- **fetcherや`useQuery`系の処理はDRY原則で集約**
+## 8. ♻️ 再利用性と共通化方針
+
+- 重複する処理/スタイル/フックは即共通化
+    - 例: `WalletConnectButton` → `components/` 配下へ
+- fetcher や useQuery 系も DRY 原則に沿って共通化
