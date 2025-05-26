@@ -37,13 +37,6 @@ jobs:
       env:
         NODE_ENV: production
 
-    - name: Export
-      run: npm run export
-      working-directory: ./frontend
-      env:
-        NODE_ENV: production
-        NEXT_PUBLIC_BASE_PATH: /Echoes_in_the_Tide
-
     - name: Add .nojekyll file
       run: touch ./frontend/out/.nojekyll
 
