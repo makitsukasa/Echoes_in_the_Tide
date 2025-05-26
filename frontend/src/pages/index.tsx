@@ -1,38 +1,28 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import BottleModal from '../components/BottleModal';
-
-interface Bottle {
-  id: string;
-  description: string;
-  image?: string;
-}
+import { useBottleStore } from '../features/bottle/stores/useBottleStore';
+import { BottleData, BottleType } from '../types/BottleType';
 
 export default function Home() {
-  const [bottles, setBottles] = useState<Bottle[]>([]);
-  const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
+  const { bottles, isLoading, error, fetchBottles } = useBottleStore();
+  const [selectedBottle, setSelectedBottle] = useState<BottleData | null>(null);
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-  // 仮のデータ（後でThe Graphから取得するように変更）
   useEffect(() => {
-    setBottles([
-      {
-        id: '1',
-        description: '海の向こうから届いたメッセージ...',
-        image: `${basePath}/bottle.webp`
-      },
-      {
-        id: '2',
-        description: '波の音に乗ってやってきた想い...',
-        image: `${basePath}/bottle.webp`
-      },
-      {
-        id: '3',
-        description: '遠い海から届いた物語...',
-        image: `${basePath}/bottle.webp`
-      }
-    ]);
-  }, [basePath]);
+    fetchBottles();
+  }, [fetchBottles]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <main className="flex items-center justify-center h-[calc(100vh-4rem)]">
+          <p className="text-red-500">エラーが発生しました: {error.message}</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -51,28 +41,36 @@ export default function Home() {
 
         {/* 小瓶の表示 */}
         <div className="absolute bottom-10 left-0 right-0 flex justify-center space-x-12">
-          {bottles.map((bottle, index) => (
-            <div
-              key={bottle.id}
-              className="cursor-pointer transform hover:scale-110 transition-transform duration-300"
-              style={{
-                transform: `rotate(${index * 15 - 15}deg)`,
-              }}
-              onClick={() => setSelectedBottle(bottle)}
-            >
-              <img
-                src={bottle.image}
-                alt="小瓶"
-                className="w-32 h-32 object-contain drop-shadow-lg"
-              />
-            </div>
-          ))}
+          {isLoading ? (
+            <p className="text-white">読み込み中...</p>
+          ) : (
+            bottles.map((bottle, index) => (
+              <div
+                key={bottle.id}
+                className="cursor-pointer transform hover:scale-110 transition-transform duration-300"
+                style={{
+                  transform: `rotate(${index * 15 - 15}deg)`,
+                }}
+                onClick={() => setSelectedBottle(bottle)}
+              >
+                <img
+                  src={`${basePath}/bottle.webp`}
+                  alt="小瓶"
+                  className="w-32 h-32 object-contain drop-shadow-lg"
+                />
+              </div>
+            ))
+          )}
         </div>
 
         {/* モーダル */}
         {selectedBottle && (
           <BottleModal
-            bottle={selectedBottle}
+            bottle={{
+              id: selectedBottle.id,
+              description: selectedBottle.description || '',
+              image: selectedBottle.image || `${basePath}/bottle.webp`
+            } as BottleType}
             onClose={() => setSelectedBottle(null)}
           />
         )}
