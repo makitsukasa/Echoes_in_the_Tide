@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const WalletConnectButton = dynamic(() => import('./WalletConnectButton'), {
+  ssr: false,
+});
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +33,7 @@ const Navbar = () => {
             <Link href="/setting" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100">
               設定
             </Link>
+            <WalletConnectButton />
           </div>
 
           {/* モバイルメニューボタン */}
@@ -67,6 +73,9 @@ const Navbar = () => {
             <Link href="/setting" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100">
               設定
             </Link>
+            <div className="px-3 py-2">
+              <WalletConnectButton />
+            </div>
           </div>
         </div>
       )}
