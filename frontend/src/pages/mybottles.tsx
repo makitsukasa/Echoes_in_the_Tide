@@ -10,24 +10,26 @@ interface Bottle {
 }
 
 export default function MyBottles() {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
   // 仮のデータ（後でThe Graphから取得するように変更）
   const [bottles] = useState<Bottle[]>([
     {
       id: '1',
       description: '海の向こうから届いたメッセージ...',
-      image: '/bottle.webp',
+      image: `${basePath}/bottle.webp`,
       timestamp: '2024-03-20 15:30'
     },
     {
       id: '2',
       description: '波の音に乗ってやってきた想い...',
-      image: '/bottle.webp',
+      image: `${basePath}/bottle.webp`,
       timestamp: '2024-03-19 10:15'
     },
     {
       id: '3',
       description: '遠い海から届いた物語...',
-      image: '/bottle.webp',
+      image: `${basePath}/bottle.webp`,
       timestamp: '2024-03-18 20:45'
     }
   ]);

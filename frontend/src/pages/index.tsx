@@ -11,6 +11,7 @@ interface Bottle {
 export default function Home() {
   const [bottles, setBottles] = useState<Bottle[]>([]);
   const [selectedBottle, setSelectedBottle] = useState<Bottle | null>(null);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   // 仮のデータ（後でThe Graphから取得するように変更）
   useEffect(() => {
@@ -18,20 +19,20 @@ export default function Home() {
       {
         id: '1',
         description: '海の向こうから届いたメッセージ...',
-        image: '/bottle.webp'
+        image: `${basePath}/bottle.webp`
       },
       {
         id: '2',
         description: '波の音に乗ってやってきた想い...',
-        image: '/bottle.webp'
+        image: `${basePath}/bottle.webp`
       },
       {
         id: '3',
         description: '遠い海から届いた物語...',
-        image: '/bottle.webp'
+        image: `${basePath}/bottle.webp`
       }
     ]);
-  }, []);
+  }, [basePath]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -42,7 +43,7 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url(/ocean.webp)',
+            backgroundImage: `url(${basePath}/ocean.webp)`,
             backgroundPosition: 'center bottom',
             backgroundSize: 'cover'
           }}
