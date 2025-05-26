@@ -2,7 +2,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ImageUploader } from '../../bottle/components/ImageUploader';
 import { useThrowBottle } from '../../../utils/contract';
-import { uploadToFilebase, uploadMetadataToFilebase } from '../../../utils/filebase';
+import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../../utils/filebase';
 import { useBottleStore } from '../../bottle/stores/useBottleStore';
 import { BottleMetadata } from '../../../types/contract';
 import { useAccount, useConnect } from 'wagmi';
@@ -17,7 +17,7 @@ export const ThrowForm = () => {
   const { connect, connectors } = useConnect();
 
   const filebaseConfig = useBottleStore((state) => state.filebaseConfig);
-  const { throwBottle, isLoading } = useThrowBottle({ message, imageHash: null });
+  const { throwBottle, isLoading } = useThrowBottle({ description: message, image: null });
 
   // ウォレット接続状態の変更を監視
   useEffect(() => {
@@ -54,28 +54,29 @@ export const ThrowForm = () => {
 
     try {
       setIsUploading(true);
-      let imageHash = null;
-      let metadataHash = null;
-
+      let uri = null;
+      const metadata: BottleMetadata = {
+        name: "Echoes in the Tide",
+        description: message,
+        image: "",
+      };
       if (filebaseConfig) {
-        // Filebaseが設定されている場合、メタデータと画像をFilebaseに保存
-        const metadata: BottleMetadata = {
-          message,
-          imageHash: null,
-          timestamp: Date.now(),
-        };
-
+        // Filebaseが設定されている場合、メタデータ(と画像)をFilebaseに保存
         if (image) {
-          imageHash = await uploadToFilebase(image, filebaseConfig);
-          metadata.imageHash = imageHash;
+          let imageCID = await uploadImageToFilebase(image, filebaseConfig);
+          metadata.image = imageCID ?? "";
         }
-
-        metadataHash = await uploadMetadataToFilebase(metadata, filebaseConfig);
+        uri = await uploadMetadataToFilebase(metadata, filebaseConfig);
+      }
+      else{
+        // Filebaseが設定されていない場合はメタデータをBase64でエンコードしてオンチェーンに保存
+        const metadataJson = JSON.stringify(metadata);
+        const base64Metadata = btoa(metadataJson);
+        uri = `data:application/json;base64,${base64Metadata}`;
       }
 
       if (throwBottle) {
-        // Filebaseが設定されている場合はメタデータのハッシュを、そうでない場合はメッセージを直接送信
-        await throwBottle();
+        await throwBottle(uri ?? "");
         setMessage('');
         setImage(null);
         setPreviewUrl(null);

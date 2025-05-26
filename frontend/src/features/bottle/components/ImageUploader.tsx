@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 interface ImageUploaderProps {
   image: File | null;
   previewUrl: string | null;
-  filebaseConfig: { apiKey: string; apiSecret: string } | null;
+  filebaseConfig: { apiKey: string } | null;
   isLoading: boolean;
   onImageChange: (file: File | null) => void;
 }

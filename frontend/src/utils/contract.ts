@@ -3,7 +3,7 @@ import { useWriteContract } from 'wagmi';
 import { OCEAN_CONTRACT_ADDRESS, OCEAN_ABI } from '../constants/contracts';
 import { BottleContractConfig, ThrowBottleParams } from '../types/contract';
 
-export const useThrowBottle = ({ message, imageHash }: ThrowBottleParams) => {
+export const useThrowBottle = ({ description, image }: ThrowBottleParams) => {
   const contractConfig: BottleContractConfig = {
     address: OCEAN_CONTRACT_ADDRESS as `0x${string}`,
     abi: OCEAN_ABI,
@@ -21,8 +21,7 @@ export const useThrowBottle = ({ message, imageHash }: ThrowBottleParams) => {
     },
   });
 
-  const throwBottle = () => {
-    const uri = imageHash ? `ipfs://${imageHash}` : message;
+  const throwBottle = (uri: string) => {
     return writeContract({
       ...contractConfig,
       functionName: 'mintAndAssign',

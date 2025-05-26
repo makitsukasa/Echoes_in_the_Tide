@@ -1,20 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { useBottleStore } from '../features/bottle/stores/useBottleStore';
+import { toast } from 'sonner';
+import { useAccount, useWalletClient } from 'wagmi';
+import { encryptAndStoreConfig, getStoredConfig, clearStoredConfig } from '../utils/encryption';
 
 export default function Setting() {
-  const [filebaseApiKey, setFilebaseApiKey] = useState('');
+  const { filebaseConfig } = useBottleStore();
+  const [apiKey, setApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
+
+  useEffect(() => {
+    const loadStoredConfig = async () => {
+      if (isConnected && walletClient && walletClient.account) {
+        try {
+          const storedConfig = await getStoredConfig(walletClient, walletClient.account);
+          if (storedConfig) {
+            setApiKey(storedConfig.apiKey);
+          }
+        } catch (error) {
+          console.error('設定の読み込みに失敗しました:', error);
+        }
+      }
+      setIsLoading(false);
+    };
+    loadStoredConfig();
+  }, [isConnected, walletClient]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isConnected || !walletClient || !walletClient.account) {
+      toast.error('ウォレットを接続してください');
+      return;
+    }
     setIsSaving(true);
-
     try {
-      // TODO: 実際の保存処理を実装
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 仮の遅延
-      console.log('保存:', { filebaseApiKey });
+      const config = { apiKey };
+      await encryptAndStoreConfig(config, walletClient, walletClient.account);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleClear = async () => {
+    if (!isConnected || !walletClient || !walletClient.account) {
+      toast.error('ウォレットを接続してください');
+      return;
+    }
+    try {
+      clearStoredConfig();
+      setApiKey('');
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -27,34 +69,52 @@ export default function Setting() {
           <h1 className="text-3xl font-bold mb-8 text-center">設定</h1>
 
           <div className="bg-white rounded-lg shadow-md p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="filebaseApiKey" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filebase API Key
-                </label>
-                <input
-                  type="password"
-                  id="filebaseApiKey"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Filebase API Keyを入力してください"
-                  value={filebaseApiKey}
-                  onChange={(e) => setFilebaseApiKey(e.target.value)}
-                />
-                <p className="mt-2 text-sm text-gray-500">
-                  FilebaseのAPI Keyを設定することで、画像のアップロードが可能になります。
-                </p>
+            {isLoading ? (
+              <div className="text-center py-4">
+                <p className="text-gray-600">読み込み中...</p>
               </div>
+            ) : !isConnected ? (
+              <div className="text-center py-4">
+                <p className="text-gray-600 mb-4">設定を保存するにはウォレットを接続してください</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="filebaseApiKey" className="block text-sm font-medium text-gray-700 mb-2">
+                    Filebase IPFS RPC API Key
+                  </label>
+                  <input
+                    type="password"
+                    id="filebaseApiKey"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Filebase IPFS RPC API Keyを入力してください"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    FilebaseのIPFS RPC API Keyを設定することで、画像のアップロードが可能になります。
+                    設定はMetamaskの署名で暗号化されてブラウザに保存されます。
+                  </p>
+                </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? '保存中...' : '保存'}
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="px-6 py-3 bg-red-500 text-white font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                  >
+                    設定を削除
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSaving ? '保存中...' : '保存'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           <div className="mt-8 bg-white rounded-lg shadow-md p-6">

@@ -3,18 +3,23 @@ import { BottleMetadata } from '../types/contract';
 
 interface FilebaseConfig {
   apiKey: string;
-  apiSecret: string;
 }
 
-export const uploadToFilebase = async (file: File, config: FilebaseConfig): Promise<string> => {
+const FILEBASE_IPFS_ENDPOINT = 'https://rpc.filebase.io/api/v0';
+
+const getAuthHeader = (config: FilebaseConfig): string => {
+  return `Bearer ${config.apiKey}`;
+};
+
+export const uploadImageToFilebase = async (file: File, config: FilebaseConfig): Promise<string> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('https://api.filebase.io/v1/ipfs/pins', {
+    const response = await fetch(`${FILEBASE_IPFS_ENDPOINT}/add`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}:${config.apiSecret}`,
+        'Authorization': getAuthHeader(config),
       },
       body: formData,
     });
@@ -24,7 +29,7 @@ export const uploadToFilebase = async (file: File, config: FilebaseConfig): Prom
     }
 
     const data = await response.json();
-    return data.ipfsHash;
+    return `ipfs://${data.Hash}`;
   } catch (error) {
     toast.error('画像のアップロードに失敗しました');
     throw error;
@@ -33,13 +38,19 @@ export const uploadToFilebase = async (file: File, config: FilebaseConfig): Prom
 
 export const uploadMetadataToFilebase = async (metadata: BottleMetadata, config: FilebaseConfig): Promise<string> => {
   try {
-    const response = await fetch('https://api.filebase.io/v1/ipfs/pins', {
+    // メタデータをBlobに変換
+    const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+    const metadataFile = new File([metadataBlob], '0.json', { type: 'application/json' });
+
+    const formData = new FormData();
+    formData.append('file', metadataFile);
+
+    const response = await fetch(`${FILEBASE_IPFS_ENDPOINT}/add`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}:${config.apiSecret}`,
-        'Content-Type': 'application/json',
+        'Authorization': getAuthHeader(config),
       },
-      body: JSON.stringify(metadata),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -47,7 +58,8 @@ export const uploadMetadataToFilebase = async (metadata: BottleMetadata, config:
     }
 
     const data = await response.json();
-    return data.ipfsHash;
+    console.log('メタデータのアップロードに成功しました', data);
+    return `ipfs://${data.Hash}`;
   } catch (error) {
     toast.error('メタデータのアップロードに失敗しました');
     throw error;

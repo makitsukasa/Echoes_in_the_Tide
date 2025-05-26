@@ -87,8 +87,9 @@ subgraph/        # The Graph (サブグラフ定義)
     - fetchロジックは `frontend/src/utils/subgraph.ts` に共通化
 - **Filebase** を使ってIPFSアップロード
     - FilebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約
-    - FilebaseのAPIキーが設定されている場合、テキストだけの投稿のメタデータも画像もFilebaseに保存。
-    - FilebaseのAPIキーが設定されていない場合、画像付きの投稿は不可。テキストだけの投稿のメタデータはオンチェーンに書き込み。
+    - APIキーが設定されている場合、テキストだけの投稿のメタデータも画像もFilebaseに保存。
+    - APIキーが設定されていない場合、画像付きの投稿は不可。テキストだけの投稿のメタデータはオンチェーンに書き込み。
+    - APIキーはsessionStorageに保存。metamaskの署名機能を用いて暗号化しlocalStorageにも保存。
 - 戻り値の型は `frontend/src/types/subgraph.ts`、`frontend/src/types/contract.ts`に明示
 
 ---

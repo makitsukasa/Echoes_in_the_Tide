@@ -6,12 +6,12 @@ export interface BottleContractConfig {
 }
 
 export interface ThrowBottleParams {
-  message: string;
-  imageHash: string | null;
+  description: string;
+  image: string | null;
 }
 
 export interface BottleMetadata {
-  message: string;
-  imageHash: string | null;
-  timestamp: number;
+  name: string;
+  description: string;
+  image: string | null;
 }
