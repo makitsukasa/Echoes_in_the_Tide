@@ -9,6 +9,11 @@ interface BottleStore {
   fetchBottles: (excludedSender?: string) => Promise<void>;
   refreshBottles: (excludedSender?: string) => Promise<void>;
   getBottleById: (id: string) => BottleData | undefined;
+  filebaseConfig: {
+    apiKey: string;
+    apiSecret: string;
+  } | null;
+  setFilebaseConfig: (config: { apiKey: string; apiSecret: string }) => void;
 }
 
 export const useBottleStore = create<BottleStore>((set, get) => ({
@@ -16,6 +21,7 @@ export const useBottleStore = create<BottleStore>((set, get) => ({
   isLoading: false,
   error: null,
   lastFetched: null,
+  filebaseConfig: null,
 
   fetchBottles: async (excludedSender?: string) => {
     try {
@@ -45,4 +51,6 @@ export const useBottleStore = create<BottleStore>((set, get) => ({
     const { bottles } = get();
     return bottles.find(bottle => bottle.id === id);
   },
+
+  setFilebaseConfig: (config) => set({ filebaseConfig: config }),
 }));

@@ -4,6 +4,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
+import { polygonAmoy, polygon } from 'wagmi/chains';
 
 const WalletConnectButton = () => {
   const { address, isConnected } = useAccount();
@@ -11,9 +12,13 @@ const WalletConnectButton = () => {
   const { disconnect } = useDisconnect();
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // 環境変数からネットワークを取得（デフォルトはamoy）
+  const network = process.env.NEXT_PUBLIC_NETWORK || 'amoy';
+  const chain = network === 'amoy' ? polygonAmoy : polygon;
+
   const handleConnect = () => {
     if (connectors[0]) {
-      connect({ connector: connectors[0] });
+      connect({ connector: connectors[0], chainId: chain.id });
     }
   };
 

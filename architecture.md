@@ -3,22 +3,21 @@
 ## 1. 📁 ディレクトリ構成と責務
 
 ```
-frontend/                    # フロントエンド (Next.js 13.4、React 18.2)
-│                            # GitHub Pages で公開するため、クライアントサイドのみで動作
-├── public/                  # 静的ファイル (favicon.ico, og-image.png, manifest.json)
+frontend/        # フロントエンド (Next.js 13.4、React 18.2)
+│                # GitHub Pages で公開するため、クライアントサイドのみで動作
+├── public/      # 静的ファイル (favicon.ico, og-image.png, manifest.json)
 ├── src/                     # アプリ本体のソースコード
-│   ├── assets/              # 画像、スタイルなど
 │   ├── components/          # 複数ページで再利用するUIコンポーネント
 │   │   ├── Navbar.tsx       # ナビゲーションメニュー（PC/モバイル両対応）
 │   │   └── ...
 │   ├── constants/           # 定数定義（例: contracts.ts）
-│   ├── features/            # ドメイン単位で機能を分類（bottle, ocean, walletなど）
-│   │   ├── bottle/          # 必要に応じて各種要素を分割
-│   │   │   ├── components/
-│   │   │   ├── hooks/       # useBottleList など、状態を持たない処理
-│   │   │   ├── stores/      # useBottleStore.ts など、状態管理
-│   │   │   └── utils/       # createBottleData.ts など
-│   │   ├── ocean/components/OceanView.tsx
+│   ├── features/            # ドメイン単位で機能を分類（1画面1つ+bottleなど）
+│   │   ├── bottle/          # 小瓶に関するドメイン（詳細モーダル、型、ロジック）
+│   │   │   └── components/BottleDetailModal.tsx    # 小瓶の中身表示(index.tsxとthrow.tsxで使う)
+│   │   │   └── stores/useBottleStore.ts            # 小瓶の状態管理
+│   │   ├── ocean/components/OceanView.tsx          # 海を眺める画面
+│   │   ├── mybottles/components/MyBottlesList.tsx  # 拾った小瓶一覧画面
+│   │   ├── throw/components/ThrowForm.tsx          # 小瓶を流す画面のフォーム
 │   │   └── ...
 │   ├── hooks/               # 共通的なカスタムフック（features以下に置けない汎用フック）
 │   ├── pages/               # Next.js の各ページ（Pages Router）
@@ -29,13 +28,14 @@ frontend/                    # フロントエンド (Next.js 13.4、React 18.2)
 │   │   └── _app.tsx         # 全体のProvider（Wagmi/Zustandなど）をラップ
 │   ├── stores/              # グローバルな状態管理（Zustand）
 │   ├── utils/               # 汎用ユーティリティ（コントラクト操作・subgraph・filebaseなど）
-│   └── types/               # 型定義（BottleType など）
+│   ├── types/               # 型定義（BottleType など）
+│   └── styles/
 ├── __tests__/               # おいおい
 ├── package.json
 ├── tsconfig.json
 └── README.md
-contracts/                   # スマートコントラクト（Foundry + OpenZeppelin）
-subgraph/                    # The Graph (サブグラフ定義)
+contracts/       # スマートコントラクト（Foundry + OpenZeppelin）
+subgraph/        # The Graph (サブグラフ定義)
 
 ```
 
@@ -86,7 +86,9 @@ subgraph/                    # The Graph (サブグラフ定義)
 - **The Graph**を通じてオンチェーン状態を取得
     - fetchロジックは `frontend/src/utils/subgraph.ts` に共通化
 - **Filebase** を使ってIPFSアップロード
-    - filebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約
+    - FilebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約
+    - FilebaseのAPIキーが設定されている場合、テキストだけの投稿のメタデータも画像もFilebaseに保存。
+    - FilebaseのAPIキーが設定されていない場合、画像付きの投稿は不可。テキストだけの投稿のメタデータはオンチェーンに書き込み。
 - 戻り値の型は `frontend/src/types/subgraph.ts`、`frontend/src/types/contract.ts`に明示
 
 ---
@@ -118,3 +120,37 @@ subgraph/                    # The Graph (サブグラフ定義)
 - 重複する処理/スタイル/フックは即共通化
     - 例: `WalletConnectButton` → `components/` 配下へ
 - fetcher や useQuery 系も DRY 原則に沿って共通化
+
+---
+
+## 9. 🚀 公開
+
+### 9-1. GitHub Pagesへのデプロイ
+
+- `frontend/` ディレクトリ内のNext.jsアプリを **静的サイトとしてビルド・出力**
+    - `next.config.ts` に `output: 'export'` と `basePath: '/Echoes_in_the_Tide'` を設定
+    - `npm run build` 実行時に `frontend/out/` に静的ファイルが生成される
+- `main` ブランチへの push をトリガーに GitHub Actions がデプロイを実行
+    - `.github/workflows/deploy.yml` にて `peaceiris/actions-gh-pages@v3` を使用
+    - `publish_dir: ./frontend/out` を指定し、`gh-pages` ブランチへデプロイ
+    - `.nojekyll` ファイルを生成して GitHub Pages の特殊処理を無効化
+- GitHub Pages の公開設定
+    - GitHub リポジトリの Settings > Pages にて `gh-pages` ブランチを指定
+    - `/ (root)` を公開ディレクトリとして設定
+
+### 9-2. スマートコントラクト
+
+```bash
+forge script script/Deploy.s.sol --rpc-url amoy --broadcast --verify -vvvv
+```
+
+Mint.s.sol、Claim.s.sol、subgraph.yaml、callcontacts.jsのコントラクトアドレスを更新
+
+### 9-3. **The Graph**
+
+```bash
+jq '.abi' contracts/out/Ocean.sol/Ocean.json > subgraph/abis/Ocean.json
+graph codegen
+graph build
+graph deploy ocean
+```
