@@ -1,5 +1,3 @@
-# 📐設計方針
-
 ## 1. 📁 ディレクトリ構成と責務
 
 ```
@@ -83,14 +81,23 @@ subgraph/        # The Graph (サブグラフ定義)
 
 ## 5. 🛰️ API設計（The Graph + IPFS）
 
-- **The Graph**を通じてオンチェーン状態を取得
-    - fetchロジックは `frontend/src/utils/subgraph.ts` に共通化
-- **Filebase** を使ってIPFSアップロード
-    - FilebaseのAPI呼び出しは `frontend/src/utils/filebase.ts` に集約
-    - APIキーが設定されている場合、テキストだけの投稿のメタデータも画像もFilebaseに保存。
-    - APIキーが設定されていない場合、画像付きの投稿は不可。テキストだけの投稿のメタデータはオンチェーンに書き込み。
-    - APIキーはsessionStorageに保存。metamaskの署名機能を用いて暗号化しlocalStorageにも保存。
-- 戻り値の型は `frontend/src/types/subgraph.ts`、`frontend/src/types/contract.ts`に明示
+- **オンチェーン状態の取得**：
+    - `The Graph` を使ってデータ取得。
+    - フロントエンドの GraphQL クエリは `frontend/src/utils/subgraph.ts` に集約。
+- **IPFSアップロード（Filebase経由）**：
+    - IPFSへのデータアップロードは `frontend/src/utils/filebase.ts` に実装。
+    - FilebaseのAPIキーの扱いに応じて以下の挙動を実装：
+        - **APIキーあり**：
+            - テキスト投稿のメタデータも画像も、Filebase経由でIPFSに保存。
+        - **APIキーなし**：
+            - 画像の投稿は不可。
+            - テキスト投稿のメタデータはbase64エンコードの上オンチェーンに直接保存。
+- **APIキーの管理方法**：
+    - APIキーを**Metamask署名で導出した鍵でAES暗号化して保存**。`Zustand`の`persist`を使用。
+    - 暗号化・復号のロジックは `frontend/src/utils/encrypt.ts` に実装。
+- **型定義**：
+    - The Graph関連の戻り値型は `frontend/src/types/subgraph.ts` に定義。
+    - コントラクト呼び出しに関する型は `frontend/src/types/contract.ts` に定義。
 
 ---
 

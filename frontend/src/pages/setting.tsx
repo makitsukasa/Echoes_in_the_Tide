@@ -3,10 +3,9 @@ import Navbar from '../components/Navbar';
 import { useBottleStore } from '../features/bottle/stores/useBottleStore';
 import { toast } from 'sonner';
 import { useAccount, useWalletClient } from 'wagmi';
-import { encryptAndStoreConfig, getStoredConfig, clearStoredConfig } from '../utils/encryption';
 
 export default function Setting() {
-  const { filebaseConfig } = useBottleStore();
+  const { filebaseConfig, loadConfig, saveConfig, clearConfig } = useBottleStore();
   const [apiKey, setApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,18 +16,22 @@ export default function Setting() {
     const loadStoredConfig = async () => {
       if (isConnected && walletClient && walletClient.account) {
         try {
-          const storedConfig = await getStoredConfig(walletClient, walletClient.account);
-          if (storedConfig) {
-            setApiKey(storedConfig.apiKey);
-          }
+          await loadConfig(walletClient, walletClient.account);
         } catch (error) {
           console.error('設定の読み込みに失敗しました:', error);
+          toast.error('設定の読み込みに失敗しました');
         }
       }
       setIsLoading(false);
     };
     loadStoredConfig();
-  }, [isConnected, walletClient]);
+  }, [isConnected, walletClient, loadConfig]);
+
+  useEffect(() => {
+    if (filebaseConfig?.apiKey) {
+      setApiKey(filebaseConfig.apiKey);
+    }
+  }, [filebaseConfig]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,12 +39,18 @@ export default function Setting() {
       toast.error('ウォレットを接続してください');
       return;
     }
+    if (!apiKey.trim()) {
+      toast.error('APIキーを入力してください');
+      return;
+    }
     setIsSaving(true);
     try {
-      const config = { apiKey };
-      await encryptAndStoreConfig(config, walletClient, walletClient.account);
+      const config = { apiKey: apiKey.trim() };
+      await saveConfig(walletClient, walletClient.account, config);
+      toast.success('設定を保存しました');
     } catch (error) {
       console.error(error);
+      toast.error('設定の保存に失敗しました');
     } finally {
       setIsSaving(false);
     }
@@ -53,10 +62,12 @@ export default function Setting() {
       return;
     }
     try {
-      clearStoredConfig();
+      clearConfig();
       setApiKey('');
+      toast.success('設定を削除しました');
     } catch (error) {
       console.error(error);
+      toast.error('設定の削除に失敗しました');
     }
   };
 
@@ -90,6 +101,8 @@ export default function Setting() {
                     placeholder="Filebase IPFS RPC API Keyを入力してください"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
+                    disabled={isSaving}
+                    autoComplete="off"
                   />
                   <p className="mt-2 text-sm text-gray-500">
                     FilebaseのIPFS RPC API Keyを設定することで、画像のアップロードが可能になります。
@@ -101,7 +114,8 @@ export default function Setting() {
                   <button
                     type="button"
                     onClick={handleClear}
-                    className="px-6 py-3 bg-red-500 text-white font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                    disabled={isSaving}
+                    className="px-6 py-3 bg-red-500 text-white font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     設定を削除
                   </button>

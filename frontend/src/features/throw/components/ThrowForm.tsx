@@ -6,6 +6,7 @@ import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../../utils/
 import { useBottleStore } from '../../bottle/stores/useBottleStore';
 import { BottleMetadata } from '../../../types/contract';
 import { useAccount, useConnect } from 'wagmi';
+import type { WalletClient, Account } from 'viem';
 
 export const ThrowForm = () => {
   const [message, setMessage] = useState('');
@@ -13,19 +14,29 @@ export const ThrowForm = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [shouldSubmit, setShouldSubmit] = useState(false);
-  const { isConnected } = useAccount();
+  const { isConnected, address, connector } = useAccount();
   const { connect, connectors } = useConnect();
 
-  const filebaseConfig = useBottleStore((state) => state.filebaseConfig);
+  const walletClient = connector?.walletClient as WalletClient | undefined;
+  const account = address ? { address } as Account : undefined;
+
+  const {
+    filebaseConfig,
+    loadConfig,
+  } = useBottleStore();
+
   const { throwBottle, isLoading } = useThrowBottle({ description: message, image: null });
 
-  // ウォレット接続状態の変更を監視
+  // ウォレット接続状態の変更を監視し、復号も行ってからsubmitする
   useEffect(() => {
-    if (isConnected && shouldSubmit) {
-      handleSubmit(new Event('submit') as unknown as FormEvent);
-      setShouldSubmit(false);
+    if (isConnected && shouldSubmit && walletClient && account) {
+      (async () => {
+        await loadConfig(walletClient, account);
+        handleSubmitInternal();
+        setShouldSubmit(false);
+      })();
     }
-  }, [isConnected, shouldSubmit]);
+  }, [isConnected, shouldSubmit, walletClient, account, loadConfig]);
 
   const handleImageChange = (file: File | null) => {
     setImage(file);
@@ -33,6 +44,46 @@ export const ThrowForm = () => {
       setPreviewUrl(URL.createObjectURL(file));
     } else {
       setPreviewUrl(null);
+    }
+  };
+
+  const handleSubmitInternal = async () => {
+    if (!filebaseConfig && image) {
+      toast.error('画像をアップロードするにはFilebaseの設定が必要です');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      let uri = null;
+      const metadata: BottleMetadata = {
+        name: 'Echoes in the Tide',
+        description: message,
+        image: '',
+      };
+      if (filebaseConfig) {
+        if (image) {
+          const imageCID = await uploadImageToFilebase(image, filebaseConfig);
+          metadata.image = imageCID ?? '';
+        }
+        uri = await uploadMetadataToFilebase(metadata, filebaseConfig);
+      } else {
+        const metadataJson = JSON.stringify(metadata);
+        const base64Metadata = btoa(metadataJson);
+        uri = `data:application/json;base64,${base64Metadata}`;
+      }
+
+      if (throwBottle) {
+        await throwBottle(uri ?? '');
+        setMessage('');
+        setImage(null);
+        setPreviewUrl(null);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('送信に失敗しました');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -47,45 +98,8 @@ export const ThrowForm = () => {
       return;
     }
 
-    if (image && !filebaseConfig) {
-      toast.error('画像をアップロードするにはFilebaseの設定が必要です');
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      let uri = null;
-      const metadata: BottleMetadata = {
-        name: "Echoes in the Tide",
-        description: message,
-        image: "",
-      };
-      if (filebaseConfig) {
-        // Filebaseが設定されている場合、メタデータ(と画像)をFilebaseに保存
-        if (image) {
-          let imageCID = await uploadImageToFilebase(image, filebaseConfig);
-          metadata.image = imageCID ?? "";
-        }
-        uri = await uploadMetadataToFilebase(metadata, filebaseConfig);
-      }
-      else{
-        // Filebaseが設定されていない場合はメタデータをBase64でエンコードしてオンチェーンに保存
-        const metadataJson = JSON.stringify(metadata);
-        const base64Metadata = btoa(metadataJson);
-        uri = `data:application/json;base64,${base64Metadata}`;
-      }
-
-      if (throwBottle) {
-        await throwBottle(uri ?? "");
-        setMessage('');
-        setImage(null);
-        setPreviewUrl(null);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsUploading(false);
-    }
+    await loadConfig(walletClient!, account!);
+    await handleSubmitInternal();
   };
 
   return (
@@ -116,10 +130,10 @@ export const ThrowForm = () => {
       <div className="flex justify-center">
         <button
           type="submit"
-          className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading || isUploading || !message.trim()}
+          className="px-6 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          disabled={isLoading || isUploading}
         >
-          {isLoading || isUploading ? '送信中...' : '小瓶を流す'}
+          送信
         </button>
       </div>
     </form>
