@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BottleData, BottleGraphData, BottleMetadata } from '../types/BottleType';
+import { BottleData, BottleGraphData, BottleMetadata, Bottle } from '../types/BottleType';
 
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || 'https://api.studio.thegraph.com/query/109981/ocean/version/latest';
 
@@ -79,3 +79,75 @@ export async function fetchBottles(excludedSender?: string): Promise<BottleData[
     throw error;
   }
 }
+
+export const fetchUserBottles = async (userAddress: string) => {
+  const query = `
+    query GetUserBottles($userAddress: String!) {
+      bottleClaimeds(where: { claimer: "${userAddress.toLowerCase()}" }) {
+        tokenId
+        blockTimestamp
+      }
+      bottleMinteds {
+        tokenId
+        tokenURI
+      }
+    }
+  `;
+
+  const response = await fetch(SUBGRAPH_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables: { userAddress: userAddress.toLowerCase() },
+    }),
+  });
+
+  const responseData = await response.json();
+  console.log('GraphQL Response:', responseData);
+
+  if (!responseData || !responseData?.data) {
+    console.error('Invalid response structure:', responseData);
+    return [];
+  }
+
+  const { bottleClaimeds, bottleMinteds }: {
+    bottleClaimeds: { tokenId: string; blockTimestamp: string }[];
+    bottleMinteds: { tokenId: string; tokenURI: string }[];
+  } = responseData.data;
+
+  if (!bottleClaimeds || !bottleMinteds) {
+    console.error('Missing required data:', { bottleClaimeds, bottleMinteds });
+    return [];
+  }
+
+  const bottles: (Bottle | null)[] = await Promise.all(
+    bottleClaimeds.map(async (claimed): Promise<Bottle | null> => {
+      const minted = bottleMinteds.find(
+        (minted) => minted.tokenId === claimed.tokenId
+      );
+      if (!minted) {
+        console.warn(`No minted bottle found for tokenId: ${claimed.tokenId}`);
+        return null;
+      }
+      try {
+        const metadata = await fetchBottleMetadata(minted.tokenURI);
+        return {
+          id: claimed.tokenId,
+          tokenId: claimed.tokenId,
+          tokenURI: minted.tokenURI,
+          ...metadata,
+          date: new Date(parseInt(claimed.blockTimestamp) * 1000).toLocaleDateString('ja-JP'),
+          status: '所有中',
+        };
+      } catch (error) {
+        console.error(`Error fetching metadata for tokenId ${claimed.tokenId}:`, error);
+        return null;
+      }
+    })
+  );
+
+  return bottles.filter((bottle): bottle is Bottle => bottle !== null);
+};

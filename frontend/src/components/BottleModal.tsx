@@ -13,6 +13,7 @@ interface BottleModalProps {
 }
 
 export default function BottleModal({ bottle, onClose }: BottleModalProps) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const handleModalClick = (e: MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -27,9 +28,15 @@ export default function BottleModal({ bottle, onClose }: BottleModalProps) {
       <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
         <h2 className="text-xl font-bold mb-4">小瓶の中身</h2>
         <p className="text-gray-700 mb-4">{bottle.description}</p>
-        {bottle.image && (
+        {bottle.image ? (
           <img
             src={bottle.image}
+            alt="小瓶の中身"
+            className="w-full h-48 object-contain rounded-lg"
+          />
+        ) : (
+          <img
+          src={`${basePath}/bottle.webp`}
             alt="小瓶の中身"
             className="w-full h-48 object-contain rounded-lg"
           />

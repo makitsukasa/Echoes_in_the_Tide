@@ -42,3 +42,19 @@ export interface BottleData extends BottleGraphData {
   owner?: string;
   metadata_url?: string;
 }
+
+/**
+ * ユーザーが所有するボトルの型
+ */
+export interface Bottle {
+  id: string;
+  tokenId: string;
+  tokenURI: string;
+  name?: string;
+  description?: string;
+  message?: string;
+  image?: string;
+  html?: string;
+  date: string;
+  status: string;
+}

@@ -3,6 +3,14 @@ import { persist } from 'zustand/middleware';
 import { BottleData } from '../../../types/BottleType';
 import { useEncryptedFilebaseStore } from '../../../utils/encryption';
 import type { WalletClient, Account } from 'viem';
+import { fetchUserBottles } from '../../../utils/subgraph';
+
+interface Bottle {
+  id: string;
+  description: string;
+  image?: string;
+  timestamp: string;
+}
 
 interface BottleStore {
   bottles: BottleData[];
@@ -10,6 +18,7 @@ interface BottleStore {
   error: Error | null;
   lastFetched: number | null;
   filebaseConfig: { apiKey: string } | null;
+  userBottles: Bottle[];
 
   fetchBottles: (excludedSender?: string) => Promise<void>;
   refreshBottles: (excludedSender?: string) => Promise<void>;
@@ -18,6 +27,7 @@ interface BottleStore {
   setConfig: (config: { apiKey: string } | null) => void;
   saveConfig: (walletClient: WalletClient, account: Account, config: { apiKey: string }) => Promise<void>;
   clearConfig: () => void;
+  fetchUserBottles: (address: string) => Promise<void>;
 }
 
 export const useBottleStore = create<BottleStore>()(
@@ -28,6 +38,7 @@ export const useBottleStore = create<BottleStore>()(
       error: null,
       lastFetched: null,
       filebaseConfig: null,
+      userBottles: [],
 
       setConfig: (config) => {
         set({ filebaseConfig: config });
@@ -85,6 +96,21 @@ export const useBottleStore = create<BottleStore>()(
       getBottleById: (id) => {
         const { bottles } = get();
         return bottles.find((bottle) => bottle.id === id);
+      },
+
+      fetchUserBottles: async (address: string) => {
+        if (!address) {
+          set({ error: new Error('ウォレットが接続されていません') });
+          return;
+        }
+
+        set({ isLoading: true, error: null });
+        try {
+          const bottles = await fetchUserBottles(address);
+          set({ userBottles: bottles, isLoading: false });
+        } catch (error) {
+          set({ error: error as Error, isLoading: false });
+        }
       },
     }),
     {
