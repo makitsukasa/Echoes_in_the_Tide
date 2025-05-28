@@ -1,69 +1,71 @@
-'use client';
-
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { type ReactNode, useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
+import { wagmiConfig } from '../utils/wagmi';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import dynamic from 'next/dynamic';
-import { polygonAmoy, polygon } from 'wagmi/chains';
 
-const WalletConnectButton = () => {
+const queryClient = new QueryClient();
+
+function ConnectButton() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const [isConfirming, setIsConfirming] = useState(false);
-
-  // 環境変数からネットワークを取得（デフォルトはamoy）
-  const network = process.env.NEXT_PUBLIC_NETWORK || 'amoy';
-  const chain = network === 'amoy' ? polygonAmoy : polygon;
-
-  const handleConnect = () => {
-    if (connectors[0]) {
-      connect({ connector: connectors[0], chainId: chain.id });
-    }
-  };
-
-  const handleDisconnect = () => {
-    if (isConfirming) {
-      disconnect();
-      setIsConfirming(false);
-      toast.success('ウォレットを切断しました');
-    } else {
-      setIsConfirming(true);
-      toast.info('ウォレットを切断しますか？', {
-        action: {
-          label: '切断',
-          onClick: () => {
-            disconnect();
-            setIsConfirming(false);
-            toast.success('ウォレットを切断しました');
-          },
-        },
-      });
-    }
-  };
 
   if (isConnected) {
     return (
       <button
-        onClick={handleDisconnect}
-        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        onClick={() => disconnect()}
+        className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
       >
-        {`接続済み ${address?.slice(0, 6)}...${address?.slice(-4)}`}
+        切断: {address?.slice(0, 6)}...{address?.slice(-4)}
       </button>
     );
   }
 
-  return (
-    <button
-      onClick={handleConnect}
-      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-    >
-      ウォレットを接続
-    </button>
-  );
-};
+  const metaMask = connectors.find((connector) => connector.name === 'MetaMask');
+  const walletConnect = connectors.find((connector) => connector.name === 'WalletConnect');
 
-// クライアントサイドのみでレンダリング
-export default dynamic(() => Promise.resolve(WalletConnectButton), {
-  ssr: false,
-});
+  return (
+    <div className="flex gap-2">
+      {metaMask && (
+        <button
+          key={metaMask.uid}
+          onClick={() => connect({ connector: metaMask })}
+          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+        >
+          MetaMaskで接続
+        </button>
+      )}
+      {walletConnect && (
+        <button
+          key={walletConnect.uid}
+          onClick={() => connect({ connector: walletConnect })}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          WalletConnectで接続
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function WalletConnectButton({ children }: { children?: ReactNode }) {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) return null;
+
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <Toaster position="top-center" richColors duration={3000} />
+        <ConnectButton />
+        {children}
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}

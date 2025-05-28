@@ -2,9 +2,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
-const WalletConnectButton = dynamic(() => import('./WalletConnectButton'), {
-  ssr: false,
-});
+const WalletConnectButton = dynamic(() => import('./WalletConnectButton'), { ssr: false });
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

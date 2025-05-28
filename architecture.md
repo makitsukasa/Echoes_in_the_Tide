@@ -71,9 +71,9 @@ subgraph/        # The Graph (サブグラフ定義)
 ## 4. 🌐 Web3方針
 
 - ネットワークは Polygon（開発中は Amoy テストネット）
+- ウォレットとの接続にはReownを使用
 - **Wagmi** で状態管理とコントラクト呼び出しを統一
     - `useContractRead` / `useContractWrite` は直接使わず `utils/contract.ts` に集約
-    - WalletConnect対応
     - アドレスやABIは `frontend/src/constants/contracts.ts`
 - スマートコントラクト呼び出しは `frontend/src/utils/contract.ts` に集約
     - 例: `mintBottle()`, `claimBottle()` など関数化
