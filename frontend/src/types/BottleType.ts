@@ -57,4 +57,5 @@ export interface Bottle {
   html?: string;
   date: string;
   status: string;
+  timestamp: string;
 }

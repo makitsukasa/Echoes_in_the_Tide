@@ -3,13 +3,7 @@ import Navbar from '../components/Navbar';
 import BottleModal from '../components/BottleModal';
 import { useBottleStore } from '../features/bottle/stores/useBottleStore';
 import { useAccount } from 'wagmi';
-
-interface Bottle {
-  id: string;
-  description: string;
-  image?: string;
-  timestamp: string;
-}
+import { Bottle } from '../types/BottleType';
 
 export default function MyBottles() {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';

@@ -141,6 +141,7 @@ export const fetchUserBottles = async (userAddress: string) => {
           ...metadata,
           date: new Date(parseInt(claimed.blockTimestamp) * 1000).toLocaleDateString('ja-JP'),
           status: '所有中',
+          timestamp: new Date(parseInt(claimed.blockTimestamp) * 1000).toLocaleString('ja-JP'),
         };
       } catch (error) {
         console.error(`Error fetching metadata for tokenId ${claimed.tokenId}:`, error);

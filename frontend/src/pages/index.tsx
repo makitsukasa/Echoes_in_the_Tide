@@ -68,9 +68,14 @@ export default function Home() {
           <BottleModal
             bottle={{
               id: selectedBottle.id,
+              tokenId: selectedBottle.id,
+              tokenURI: selectedBottle.tokenURI || '',
               description: selectedBottle.description || '',
-              image: selectedBottle.image || `${basePath}/bottle.webp`
-            } as BottleType}
+              image: selectedBottle.image || `${basePath}/bottle.webp`,
+              date: selectedBottle.date || new Date().toLocaleDateString('ja-JP'),
+              status: '漂流中',
+              timestamp: new Date().toLocaleString('ja-JP')
+            }}
             onClose={() => setSelectedBottle(null)}
           />
         )}

@@ -1,16 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { BottleData } from '../../../types/BottleType';
+import { BottleData, Bottle } from '../../../types/BottleType';
 import { useEncryptedFilebaseStore } from '../../../utils/encryption';
 import type { WalletClient, Account } from 'viem';
 import { fetchUserBottles } from '../../../utils/subgraph';
-
-interface Bottle {
-  id: string;
-  description: string;
-  image?: string;
-  timestamp: string;
-}
 
 interface BottleStore {
   bottles: BottleData[];
