@@ -92,6 +92,7 @@ export default function MyBottles() {
             <BottleModal
               bottle={selectedBottle}
               onClose={() => setSelectedBottle(null)}
+              showClaimButton={false}
             />
           )}
         </div>

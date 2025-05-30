@@ -3,15 +3,28 @@ import Navbar from '../components/Navbar';
 import BottleModal from '../components/BottleModal';
 import { useBottleStore } from '../features/bottle/stores/useBottleStore';
 import { BottleData, BottleType } from '../types/BottleType';
+import { useClaimBottle } from '../utils/contract';
 
 export default function Home() {
   const { bottles, isLoading, error, fetchBottles } = useBottleStore();
   const [selectedBottle, setSelectedBottle] = useState<BottleData | null>(null);
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  const { claimBottle, isLoading: isClaiming } = useClaimBottle();
 
   useEffect(() => {
     fetchBottles();
   }, [fetchBottles]);
+
+  // claimボタン押下時の処理
+  const handleClaim = async (bottle: BottleData) => {
+    try {
+      await claimBottle(bottle.id);
+      setSelectedBottle(null);
+      fetchBottles(); // 拾った後リストを更新
+    } catch (e) {
+      // エラーはトーストで表示される
+    }
+  };
 
   if (error) {
     return (
@@ -77,6 +90,8 @@ export default function Home() {
               timestamp: new Date().toLocaleString('ja-JP')
             }}
             onClose={() => setSelectedBottle(null)}
+            showClaimButton={true}
+            onClaim={handleClaim}
           />
         )}
       </main>
