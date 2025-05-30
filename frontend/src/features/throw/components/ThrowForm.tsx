@@ -7,6 +7,7 @@ import { useBottleStore } from '../../bottle/stores/useBottleStore';
 import { BottleMetadata } from '../../../types/contract';
 import { useAccount, useConnect } from 'wagmi';
 import type { WalletClient, Account } from 'viem';
+import { Base64 } from 'js-base64';
 
 export const ThrowForm = () => {
   const [message, setMessage] = useState('');
@@ -69,8 +70,9 @@ export const ThrowForm = () => {
         uri = await uploadMetadataToFilebase(metadata, filebaseConfig);
       } else {
         const metadataJson = JSON.stringify(metadata);
-        const base64Metadata = btoa(metadataJson);
-        uri = `data:application/json;base64,${base64Metadata}`;
+        const utf8Bytes = new TextEncoder().encode(metadataJson);
+        const base64String = Base64.fromUint8Array(utf8Bytes);
+        uri = `data:application/json;base64,${base64String}`;
       }
 
       if (throwBottle) {
