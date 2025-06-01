@@ -1,5 +1,5 @@
 import { MouseEvent } from 'react';
-import { Bottle } from '../types/BottleType';
+import { Bottle } from '../../types/BottleType';
 
 interface BottleModalProps {
   bottle: Bottle;

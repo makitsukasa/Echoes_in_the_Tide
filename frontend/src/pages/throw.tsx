@@ -1,5 +1,5 @@
-import Navbar from '../components/Navbar';
-import { ThrowForm } from '../features/throw/components/ThrowForm';
+import Navbar from '../components/common/Navbar';
+import { ThrowForm } from '../components/throw/ThrowForm';
 
 export default function Throw() {
   return (

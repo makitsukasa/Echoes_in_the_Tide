@@ -1,34 +1,44 @@
 ## 1. 📁 ディレクトリ構成と責務
 
 ```
-frontend/        # フロントエンド (Next.js 13.4、React 18.2)
+frontend/        # フロントエンド (Next.js、React 18.2)
 │                # GitHub Pages で公開するため、クライアントサイドのみで動作
 ├── public/      # 静的ファイル (favicon.ico, og-image.png, manifest.json)
-├── src/                     # アプリ本体のソースコード
-│   ├── components/          # 複数ページで再利用するUIコンポーネント
-│   │   ├── Navbar.tsx       # ナビゲーションメニュー（PC/モバイル両対応）
-│   │   └── ...
-│   ├── constants/           # 定数定義（例: contracts.ts）
-│   ├── features/            # ドメイン単位で機能を分類（1画面1つ+bottleなど）
-│   │   ├── bottle/          # 小瓶に関するドメイン（詳細モーダル、型、ロジック）
-│   │   │   └── components/BottleDetailModal.tsx    # 小瓶の中身表示(index.tsxとthrow.tsxで使う)
-│   │   │   └── stores/useBottleStore.ts            # 小瓶の状態管理
-│   │   ├── ocean/components/OceanView.tsx          # 海を眺める画面
-│   │   ├── mybottles/components/MyBottlesList.tsx  # 拾った小瓶一覧画面
-│   │   ├── throw/components/ThrowForm.tsx          # 小瓶を流す画面のフォーム
-│   │   └── ...
-│   ├── hooks/               # 共通的なReactカスタムフック（features以下に置けない汎用フック）
-│   ├── pages/               # Next.js の各ページ（Pages Router）
+├── src/
+│   ├── components/
+│   │   ├── common/                # 共通UI
+│   │   │   ├── Navbar.tsx         # ナビゲーションメニュー（PC/モバイル両対応）
+│   │   │   ├── BottleModal.tsx
+│   │   │   └── WalletConnectButton.tsx
+│   │   ├── throw/                 # 小瓶を流す画面関連
+│   │   │   ├── ThrowForm.tsx
+│   │   │   └── ImageUploader.tsx
+│   │   ├── mybottles/             # 拾った小瓶一覧
+│   │   │   └── BottleList.tsx
+│   │   └── setting/               # 設定画面
+│   │       └── SettingForm.tsx
+│   ├── hooks/                     # Reactカスタムフック
+│   │   └── useSettingForm.ts      # APIキーの暗号化保存をhookに抽象化
+│   ├── pages/
 │   │   ├── index.tsx        # トップページ（海を眺める）
 │   │   ├── throw.tsx        # 小瓶を流す画面
-│   │   ├── mybottles.tsx    # 拾った小瓶一覧
-│   │   ├── setting.tsx      # 設定画面
+│   │   ├── mybottles.tsx
+│   │   ├── setting.tsx
 │   │   └── _app.tsx         # 全体のProvider（Wagmi/Zustandなど）をラップ
 │   ├── stores/              # グローバルな状態管理（Zustand）
-│   ├── utils/               # 状態を持たない汎用ユーティリティ（コントラクト操作・subgraph・filebaseなど）
-│   ├── types/               # フロント全体で再利用する型定義（BottleType など）
+│   │   └── useBottleStore.ts
+│   ├── types/               # フロント全体で再利用する型定義
+│   │   └── BottleType.ts
+│   │   └── contractType.ts
+│   ├── utils/               # 副作用がなく状態を持たない汎用ユーティリティ（コントラクト操作・subgraph・filebaseなど）
+│   │   ├── contract/        # mint/claim関数などを個別に分割
+│   │   │   └── mint.ts
+│   │   │   └── claim.ts
+│   │   ├── filebase.ts
+│   │   ├── subgraph.ts
+│   │   └── encrypt.ts       # 暗号化処理のロジック本体（hookから呼ばれる）
 │   └── styles/
-├── __tests__/               # おいおい
+│       └── globals.css
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -54,14 +64,14 @@ subgraph/        # The Graph (サブグラフ定義)
 - 📜 拾った小瓶を眺める画面 → `src/pages/mybottles.tsx`, `features/my-bottles/components/MyBottlesView.tsx`
 - ⚙️ 設定画面 → `src/pages/setting.tsx`
     - filebaseのapiキーを入力、保存
-- 画面遷移はハンバーガーメニュー `src/components/Navbar.tsx`
+- 🍔 画面遷移はハンバーガーメニュー `src/components/Navbar.tsx`
     - PC、モバイル両対応
 
 ---
 
 ## 3. 🧠 状態管理の方針
 
-- **Zustand** を基本に使用（`src/stores/` または `features/*/stores/`）
+- **Zustand** を基本に使用（`src/stores/`）
 - 各storeは状態の管理のみを行い、副作用があるなら`src/utils/`など別ファイルに分ける
 - **Context API** は UI 状態の共有（テーマ、トーストなど）に限定
 - コンポーネント内だけで完結する状態は**useState**を使用
@@ -73,10 +83,8 @@ subgraph/        # The Graph (サブグラフ定義)
 - ネットワークは Polygon（開発中は Amoy テストネット）
 - ウォレットとの接続にはReownを使用
 - **Wagmi** で状態管理とコントラクト呼び出しを統一
-    - `useContractRead` / `useContractWrite` は直接使わず `utils/contract.ts` に集約
     - アドレスやABIは `frontend/src/constants/contracts.ts`
-- スマートコントラクト呼び出しは `frontend/src/utils/contract.ts` に集約
-    - 例: `mintBottle()`, `claimBottle()` など関数化
+    - スマートコントラクト呼び出しは `frontend/src/utils/contract.ts` に集約し、`throwBottle()`, `claimBottle()` など関数化する。`useContractRead` / `useContractWrite` は直接使わない。
 
 ---
 
@@ -127,7 +135,7 @@ subgraph/        # The Graph (サブグラフ定義)
 ## 8. ♻️ 再利用性と共通化方針
 
 - 重複する処理/スタイル/フックは即共通化
-    - 例: `WalletConnectButton` → `components/` 配下へ
+    - 例: `WalletConnectButton` → `components/common/` 配下へ
 - fetcher や useQuery 系も DRY 原則に沿って共通化
 
 ---
@@ -151,9 +159,10 @@ subgraph/        # The Graph (サブグラフ定義)
 
 ```bash
 forge script script/Deploy.s.sol --rpc-url amoy --broadcast --verify -vvvv
+
 ```
 
-Mint.s.sol、Claim.s.sol、subgraph.yaml、callcontacts.jsのコントラクトアドレスを更新
+デプロイ後はMint.s.sol、Claim.s.sol、subgraph.yaml、callcontacts.jsのコントラクトアドレスを更新
 
 ### 9-3. **The Graph**
 
@@ -162,4 +171,5 @@ jq '.abi' contracts/out/Ocean.sol/Ocean.json > subgraph/abis/Ocean.json
 graph codegen
 graph build
 graph deploy ocean
+
 ```

@@ -2,7 +2,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode, useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
-import { wagmiConfig } from '../utils/wagmi';
+import { wagmiConfig } from '../../utils/wagmi';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 
 const queryClient = new QueryClient();

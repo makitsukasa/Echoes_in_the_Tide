@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 const WalletConnectButton = dynamic(() => import('./WalletConnectButton'), { ssr: false });
 
-const Navbar = () => {
+export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

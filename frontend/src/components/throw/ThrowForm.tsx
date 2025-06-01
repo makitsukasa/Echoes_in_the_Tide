@@ -1,10 +1,10 @@
 import { FormEvent, useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { ImageUploader } from '../../bottle/components/ImageUploader';
-import { useThrowBottle } from '../../../utils/contract';
-import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../../utils/filebase';
-import { useBottleStore } from '../../bottle/stores/useBottleStore';
-import { BottleMetadata } from '../../../types/contract';
+import { ImageUploader } from './ImageUploader';
+import { useThrowBottle } from '../../hooks/useThrowBottle';
+import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../utils/filebase';
+import { useBottleStore } from '../../stores/useBottleStore';
+import { BottleMetadata } from '../../types/contract';
 import { useAccount, useConnect } from 'wagmi';
 import type { WalletClient, Account } from 'viem';
 import { Base64 } from 'js-base64';
@@ -26,7 +26,7 @@ export const ThrowForm = () => {
     loadConfig,
   } = useBottleStore();
 
-  const { throwBottle, isLoading } = useThrowBottle({ description: message, image: null });
+  const { throwBottle, isLoading } = useThrowBottle();
 
   // ウォレット接続状態の変更を監視し、復号も行ってからsubmitする
   useEffect(() => {

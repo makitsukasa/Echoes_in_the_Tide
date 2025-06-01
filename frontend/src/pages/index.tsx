@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import BottleModal from '../components/BottleModal';
-import { useBottleStore } from '../features/bottle/stores/useBottleStore';
-import { BottleData, BottleType } from '../types/BottleType';
-import { useClaimBottle } from '../utils/contract';
+import Navbar from '../components/common/Navbar';
+import BottleModal from '../components/common/BottleModal';
+import { useDriftingBottles } from '../hooks/useDriftingBottles';
 
 export default function Home() {
-  const { bottles, isLoading, error, fetchBottles } = useBottleStore();
-  const [selectedBottle, setSelectedBottle] = useState<BottleData | null>(null);
+  const {
+    bottles,
+    isLoading,
+    error,
+    selectedBottle,
+    setSelectedBottle,
+    handleClaim,
+  } = useDriftingBottles();
+
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-  const { claimBottle, isLoading: isClaiming } = useClaimBottle();
-
-  useEffect(() => {
-    fetchBottles();
-  }, [fetchBottles]);
-
-  // claimボタン押下時の処理
-  const handleClaim = async (bottle: BottleData) => {
-    try {
-      await claimBottle(bottle.id);
-      setSelectedBottle(null);
-      fetchBottles(); // 拾った後リストを更新
-    } catch (e) {
-      // エラーはトーストで表示される
-    }
-  };
 
   if (error) {
     return (
@@ -40,19 +28,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-
       <main className="relative h-[calc(100vh-4rem)] overflow-hidden">
-        {/* 背景画像 */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${basePath}/ocean.webp)`,
-            backgroundPosition: 'center bottom',
-            backgroundSize: 'cover'
-          }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${basePath}/ocean.webp)` }}
         />
-
-        {/* 小瓶の表示 */}
         <div className="absolute bottom-10 left-0 right-0 flex justify-center space-x-12">
           {isLoading ? (
             <p className="text-white">読み込み中...</p>
@@ -60,11 +40,9 @@ export default function Home() {
             bottles.map((bottle, index) => (
               <div
                 key={bottle.id}
-                className="cursor-pointer transform hover:scale-110 transition-transform duration-300"
-                style={{
-                  transform: `rotate(${index * 15 - 15}deg)`,
-                }}
                 onClick={() => setSelectedBottle(bottle)}
+                style={{ transform: `rotate(${index * 15 - 15}deg)` }}
+                className="cursor-pointer transform hover:scale-110 transition-transform"
               >
                 <img
                   src={`${basePath}/bottle.webp`}
@@ -75,19 +53,16 @@ export default function Home() {
             ))
           )}
         </div>
-
-        {/* モーダル */}
         {selectedBottle && (
           <BottleModal
             bottle={{
-              id: selectedBottle.id,
+              ...selectedBottle,
               tokenId: selectedBottle.id,
               tokenURI: selectedBottle.tokenURI || '',
-              description: selectedBottle.description || '',
               image: selectedBottle.image || `${basePath}/bottle.webp`,
-              date: selectedBottle.date || new Date().toLocaleDateString('ja-JP'),
               status: '漂流中',
-              timestamp: new Date().toLocaleString('ja-JP')
+              timestamp: new Date().toLocaleString('ja-JP'),
+              date: selectedBottle.date || new Date().toLocaleDateString('ja-JP'),
             }}
             onClose={() => setSelectedBottle(null)}
             showClaimButton={true}
