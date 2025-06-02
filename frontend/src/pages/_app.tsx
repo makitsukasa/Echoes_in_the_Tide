@@ -1,24 +1,16 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Toaster } from 'sonner';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { mainnet, polygon, polygonAmoy } from 'wagmi/chains';
+import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const config = createConfig({
-  chains: [mainnet, polygon, polygonAmoy],
-  transports: {
-    [mainnet.id]: http(),
-    [polygon.id]: http(),
-    [polygonAmoy.id]: http(),
-  },
-});
-
-const queryClient = new QueryClient();
+import { wagmiConfig } from '../utils/wagmi';
+import { useState } from 'react';
 
 export default function App({ Component, pageProps }: AppProps) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <Component {...pageProps} />
         <Toaster position="top-right" />

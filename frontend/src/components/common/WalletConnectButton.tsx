@@ -1,71 +1,107 @@
-import { WagmiProvider } from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { type ReactNode, useState, useEffect } from 'react';
-import { Toaster } from 'sonner';
-import { wagmiConfig } from '../../utils/wagmi';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+'use client'
 
-const queryClient = new QueryClient();
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 
-function ConnectButton() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
+function WalletConnectButtonInner() {
+  const [mounted, setMounted] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const { address, isConnected, status } = useAccount()
+  const { connect, connectors, error: connectError } = useConnect()
+  const { disconnect } = useDisconnect()
 
-  if (isConnected) {
-    return (
-      <button
-        onClick={() => disconnect()}
-        className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-      >
-        切断: {address?.slice(0, 6)}...{address?.slice(-4)}
-      </button>
-    );
+  useEffect(() => {
+    setMounted(true)
+    setIsConnecting(false)
+    return () => {
+      setIsConnecting(false)
+    }
+  }, [])
+
+  const metaMask = connectors.find(c => c.type === 'injected' && c.name === 'MetaMask')
+  const walletConnect = connectors.find(c => c.id === 'walletConnect')
+
+  useEffect(() => {
+    console.log('接続状態:', { status, isConnected, address, isConnecting })
+    if (connectError) {
+      console.error('接続エラー:', connectError)
+      setIsConnecting(false)
+    }
+  }, [status, isConnected, address, connectError, isConnecting])
+
+  useEffect(() => {
+    if (isConnected) {
+      setIsConnecting(false)
+      console.log('接続完了:', { address, status })
+    }
+  }, [isConnected, address, status])
+
+  if (!mounted) {
+    return null
   }
 
-  const metaMask = connectors.find((connector) => connector.name === 'MetaMask');
-  const walletConnect = connectors.find((connector) => connector.name === 'WalletConnect');
+  const handleConnect = async (connector: any) => {
+    if (isConnecting) return
+
+    try {
+      setIsConnecting(true)
+      console.log('接続を試みます:', connector.name)
+      await connect({ connector })
+      console.log('接続成功:', { status, isConnected, address })
+    } catch (error) {
+      console.error('接続エラー:', error)
+      setIsConnecting(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect()
+      setIsConnecting(false)
+      console.log('切断完了')
+    } catch (error) {
+      console.error('切断エラー:', error)
+    }
+  }
+
+  if (isConnected && address) {
+    return (
+      <button
+        onClick={handleDisconnect}
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        切断: {address.slice(0, 6)}...{address.slice(-4)}
+      </button>
+    )
+  }
 
   return (
     <div className="flex gap-2">
       {metaMask && (
         <button
-          key={metaMask.uid}
-          onClick={() => connect({ connector: metaMask })}
-          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+          onClick={() => handleConnect(metaMask)}
+          disabled={isConnecting}
+          className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 disabled:opacity-50"
         >
-          MetaMaskで接続
+          {isConnecting ? '接続中...' : 'MetaMaskで接続'}
         </button>
       )}
       {walletConnect && (
         <button
-          key={walletConnect.uid}
-          onClick={() => connect({ connector: walletConnect })}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          onClick={() => handleConnect(walletConnect)}
+          disabled={isConnecting}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          WalletConnectで接続
+          {isConnecting ? '接続中...' : 'WalletConnectで接続'}
         </button>
       )}
     </div>
-  );
+  )
 }
 
-export default function WalletConnectButton({ children }: { children?: ReactNode }) {
-  const [hasMounted, setHasMounted] = useState(false);
+const WalletConnectButton = dynamic(() => Promise.resolve(WalletConnectButtonInner), {
+  ssr: false
+})
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) return null;
-
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <Toaster position="top-center" richColors duration={3000} />
-        <ConnectButton />
-        {children}
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-}
+export default WalletConnectButton
