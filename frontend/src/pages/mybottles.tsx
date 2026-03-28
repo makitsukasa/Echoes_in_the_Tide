@@ -1,8 +1,13 @@
+import dynamic from 'next/dynamic';
 import Navbar from '../components/common/Navbar';
-import { BottleList } from '../components/mybottles/BottleList';
 import BottleModal from '../components/common/BottleModal';
 import { useMyBottles } from '../hooks/useMyBottles';
 import { ErrorState } from '../components/common/ErrorState';
+
+const BottleList = dynamic(
+  () => import('../components/mybottles/BottleList').then(m => ({ default: m.BottleList })),
+  { ssr: false }
+);
 
 export default function MyBottles() {
   const {

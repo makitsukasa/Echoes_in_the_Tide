@@ -20,7 +20,8 @@ async function fetchBottleMetadata(tokenURI: string): Promise<BottleMetadata> {
     let data: any;
     if (tokenURI.startsWith('data:application/json;base64,')) {
       const base64 = tokenURI.slice('data:application/json;base64,'.length);
-      data = JSON.parse(atob(base64));
+      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      data = JSON.parse(new TextDecoder().decode(bytes));
     } else {
       const metadataUrl = ipfsToHttp(tokenURI);
       if (!metadataUrl) return {};
