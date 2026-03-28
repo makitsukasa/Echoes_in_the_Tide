@@ -11,7 +11,7 @@ export const BottleList = ({ bottles, isConnected, isLoading, onBottleClick }: B
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   if (isLoading) return <p className="text-center py-12 text-gray-500">読み込み中...</p>;
-  if (!isConnected) return <p className="text-center py-12 text-gray-500">ウォレットを接続してください</p>;
+  if (!isConnected) return <p className="text-center py-12 text-gray-500">ウォレットを接続すると拾った小瓶を見られます</p>;
   if (bottles.length === 0) return <p className="text-center py-12 text-gray-500">まだ小瓶を拾っていません</p>;
 
   return (
