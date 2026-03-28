@@ -1,13 +1,4 @@
 /**
- * ボトルの基本情報
- */
-export interface BottleType {
-  id: string;
-  description: string;
-  image?: string;
-}
-
-/**
  * The Graphから取得するボトルの生データ
  */
 export interface BottleGraphData {

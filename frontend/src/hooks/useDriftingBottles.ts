@@ -37,7 +37,6 @@ export const useDriftingBottles = () => {
     selectedBottle,
     setSelectedBottle,
     handleClaim,
-    isClaiming,
     reload,
   };
 };

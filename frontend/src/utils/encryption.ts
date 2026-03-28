@@ -4,9 +4,6 @@ import CryptoJS from 'crypto-js';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-export const LOCAL_STORAGE_KEY = 'encrypted_filebase_config';
-export const SESSION_STORAGE_KEY = 'filebase_api_key';
-
 export interface FilebaseConfig {
   apiKey: string;
 }
@@ -113,13 +110,3 @@ export const useEncryptedFilebaseStore = create<EncryptedFilebaseStore>()(
   )
 );
 
-export const getStoredConfig = async (
-  walletClient: WalletClient,
-  account: Account
-): Promise<FilebaseConfig | null> => {
-  return useEncryptedFilebaseStore.getState().loadConfig(walletClient, account);
-};
-
-export const clearStoredConfig = (): void => {
-  useEncryptedFilebaseStore.getState().clearConfig();
-};
