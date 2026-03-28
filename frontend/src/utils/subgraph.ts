@@ -16,11 +16,18 @@ function ipfsToHttp(url: string | undefined | null): string | undefined {
 }
 
 async function fetchBottleMetadata(tokenURI: string): Promise<BottleMetadata> {
-  const metadataUrl = ipfsToHttp(tokenURI);
-  if (!metadataUrl) return {};
   try {
-    const res = await axios.get(metadataUrl);
-    const { name, description, message, image, animation_url } = res.data;
+    let data: any;
+    if (tokenURI.startsWith('data:application/json;base64,')) {
+      const base64 = tokenURI.slice('data:application/json;base64,'.length);
+      data = JSON.parse(atob(base64));
+    } else {
+      const metadataUrl = ipfsToHttp(tokenURI);
+      if (!metadataUrl) return {};
+      const res = await axios.get(metadataUrl);
+      data = res.data;
+    }
+    const { name, description, message, image, animation_url } = data;
     return {
       name, description, message,
       image: ipfsToHttp(image),
