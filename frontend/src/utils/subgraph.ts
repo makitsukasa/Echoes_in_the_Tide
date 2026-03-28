@@ -57,7 +57,7 @@ export async function fetchDriftingBottles(excludedSender?: string): Promise<Bot
 export async function fetchUserClaimedBottles(userAddress: string): Promise<Bottle[]> {
   const query = `
     query {
-      bottleClaimeds(where: { claimer: "${userAddress.toLowerCase()}" }) {
+      bottleClaimeds(where: { claimer: "${userAddress.toLowerCase()}" }, orderBy: blockTimestamp, orderDirection: desc) {
         tokenId
         blockTimestamp
       }

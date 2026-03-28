@@ -6,10 +6,12 @@ export default function Home() {
   const {
     bottles,
     isLoading,
+    isConnected,
     error,
     selectedBottle,
     setSelectedBottle,
     handleClaim,
+    reload,
   } = useDriftingBottles();
 
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -33,9 +35,20 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${basePath}/ocean.webp)` }}
         />
+
+        <button
+          onClick={reload}
+          disabled={isLoading}
+          className="absolute top-4 right-4 z-10 px-3 py-1 bg-white/70 text-gray-700 text-sm rounded hover:bg-white/90 disabled:opacity-50"
+        >
+          読み込み直す
+        </button>
+
         <div className="absolute bottom-10 left-0 right-0 flex justify-center space-x-12">
           {isLoading ? (
-            <p className="text-white">読み込み中...</p>
+            <p className="text-white drop-shadow">読み込み中...</p>
+          ) : bottles.length === 0 ? (
+            <p className="text-white drop-shadow">今は流れ着いている小瓶がありません</p>
           ) : (
             bottles.map((bottle, index) => (
               <div
@@ -53,6 +66,7 @@ export default function Home() {
             ))
           )}
         </div>
+
         {selectedBottle && (
           <BottleModal
             bottle={{
@@ -66,6 +80,7 @@ export default function Home() {
             }}
             onClose={() => setSelectedBottle(null)}
             showClaimButton={true}
+            isConnected={isConnected}
             onClaim={handleClaim}
           />
         )}

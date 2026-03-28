@@ -5,10 +5,11 @@ interface BottleModalProps {
   bottle: Bottle;
   onClose: () => void;
   showClaimButton?: boolean;
+  isConnected?: boolean;
   onClaim?: (bottle: Bottle) => void;
 }
 
-export default function BottleModal({ bottle, onClose, showClaimButton = false, onClaim }: BottleModalProps) {
+export default function BottleModal({ bottle, onClose, showClaimButton = false, isConnected = false, onClaim }: BottleModalProps) {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const handleModalClick = (e: MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -44,10 +45,11 @@ export default function BottleModal({ bottle, onClose, showClaimButton = false, 
             )}
             {showClaimButton && (
               <button
-                onClick={() => onClaim && onClaim(bottle)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+                onClick={() => isConnected && onClaim && onClaim(bottle)}
+                disabled={!isConnected}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                小瓶を拾う
+                {isConnected ? '拾う' : 'ウォレットを接続してください'}
               </button>
             )}
             <button

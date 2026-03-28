@@ -16,11 +16,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageChange,
 }) => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!filebaseConfig) {
-      alert('画像アップロードにはFilebaseの設定が必要です。');
-      e.target.value = ''; // inputクリア
-      return;
-    }
     if (e.target.files && e.target.files.length > 0) {
       onImageChange(e.target.files[0]);
     } else {
@@ -35,10 +30,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">画像アップロード（任意）</label>
-      {!filebaseConfig && (
-        <p className="text-red-600 mb-2 text-sm">
-          Filebase設定がありません。画像アップロードはできません。
-        </p>
+      {filebaseConfig ? (
+        <p className="text-green-600 mb-2 text-sm">画像を添付した投稿が可能です。</p>
+      ) : (
+        <p className="text-gray-500 mb-2 text-sm">テキストのみ投稿可能です。画像を添付するには設定画面で Filebase API キーを登録してください。</p>
       )}
       <input
         type="file"

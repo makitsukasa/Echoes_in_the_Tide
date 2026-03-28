@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { useBottleStore } from '../stores/useBottleStore';
 import { BottleData } from '../types/BottleType';
@@ -8,9 +8,13 @@ export const useDriftingBottles = () => {
   const { bottles, isLoading, error, fetchBottles } = useBottleStore();
   const [selectedBottle, setSelectedBottle] = useState<BottleData | null>(null);
   const { claimBottle, isLoading: isClaiming } = useClaimBottle();
-  const { address: myAddress } = useAccount();
+  const { address: myAddress, isConnected } = useAccount();
 
   useEffect(() => {
+    fetchBottles(myAddress);
+  }, [fetchBottles, myAddress]);
+
+  const reload = useCallback(() => {
     fetchBottles(myAddress);
   }, [fetchBottles, myAddress]);
 
@@ -18,19 +22,22 @@ export const useDriftingBottles = () => {
     try {
       await claimBottle(bottle.id);
       setSelectedBottle(null);
-      fetchBottles(myAddress);
     } catch {
-      // エラーは useClaimBottle 内でハンドリング済み
+      // エラーメッセージは useClaimBottle 内で表示済み
+    } finally {
+      fetchBottles(myAddress);
     }
   };
 
   return {
     bottles,
     isLoading,
+    isConnected,
     error,
     selectedBottle,
     setSelectedBottle,
     handleClaim,
     isClaiming,
+    reload,
   };
 };

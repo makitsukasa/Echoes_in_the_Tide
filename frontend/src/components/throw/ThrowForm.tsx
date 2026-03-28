@@ -1,43 +1,27 @@
-import { FormEvent, useState, useEffect } from 'react';
+import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/router';
 import { ImageUploader } from './ImageUploader';
 import { useThrowBottle } from '../../hooks/useThrowBottle';
 import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../utils/filebase';
 import { useBottleStore } from '../../stores/useBottleStore';
 import { BottleMetadata } from '../../types/contract';
-import { useAccount, useConnect } from 'wagmi';
-import type { WalletClient, Account } from 'viem';
+import { useAccount } from 'wagmi';
 import { Base64 } from 'js-base64';
 
+const MAX_DESCRIPTION_LENGTH = 200;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
 export const ThrowForm = () => {
+  const router = useRouter();
   const [message, setMessage] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [shouldSubmit, setShouldSubmit] = useState(false);
-  const { isConnected, address, connector } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { isConnected } = useAccount();
 
-  const walletClient = connector?.walletClient as WalletClient | undefined;
-  const account = address ? { address } as Account : undefined;
-
-  const {
-    filebaseConfig,
-    loadConfig,
-  } = useBottleStore();
-
+  const { filebaseConfig } = useBottleStore();
   const { throwBottle, isLoading } = useThrowBottle();
-
-  // ウォレット接続状態の変更を監視し、復号も行ってからsubmitする
-  useEffect(() => {
-    if (isConnected && shouldSubmit && walletClient && account) {
-      (async () => {
-        await loadConfig(walletClient, account);
-        handleSubmitInternal();
-        setShouldSubmit(false);
-      })();
-    }
-  }, [isConnected, shouldSubmit, walletClient, account, loadConfig]);
 
   const handleImageChange = (file: File | null) => {
     setImage(file);
@@ -48,7 +32,33 @@ export const ThrowForm = () => {
     }
   };
 
-  const handleSubmitInternal = async () => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!isConnected) {
+      toast.error('ウォレットを接続してください');
+      return;
+    }
+
+    if (!message.trim()) {
+      toast.error('メッセージを入力してください');
+      return;
+    }
+    if (message.length > MAX_DESCRIPTION_LENGTH) {
+      toast.error(`メッセージは${MAX_DESCRIPTION_LENGTH}文字以内で入力してください`);
+      return;
+    }
+    if (image) {
+      if (!image.type.startsWith('image/')) {
+        toast.error('画像ファイルを選択してください');
+        return;
+      }
+      if (image.size > MAX_IMAGE_SIZE) {
+        toast.error('画像は5MB以下にしてください');
+        return;
+      }
+    }
+
     if (!filebaseConfig && image) {
       toast.error('画像をアップロードするにはFilebaseの設定が必要です');
       return;
@@ -56,12 +66,13 @@ export const ThrowForm = () => {
 
     try {
       setIsUploading(true);
-      let uri = null;
+      let uri: string;
       const metadata: BottleMetadata = {
         name: 'Echoes in the Tide',
         description: message,
         image: '',
       };
+
       if (filebaseConfig) {
         if (image) {
           const imageCID = await uploadImageToFilebase(image, filebaseConfig);
@@ -75,33 +86,23 @@ export const ThrowForm = () => {
         uri = `data:application/json;base64,${base64String}`;
       }
 
-      if (throwBottle) {
-        await throwBottle(uri ?? '');
-        setMessage('');
-        setImage(null);
-        setPreviewUrl(null);
-      }
+      await throwBottle(uri);
+      setMessage('');
+      setImage(null);
+      setPreviewUrl(null);
+      router.push('/');
     } catch (error) {
-      console.error(error);
-      toast.error('送信に失敗しました');
+      console.error('[ThrowForm] 送信エラー:', error);
+      if (error instanceof Error && error.message.includes('Chain not configured')) {
+        toast.error('ウォレットに Polygon Amoy ネットワークを追加してから接続し直してください（チェーンID: 80002）');
+      } else if (error instanceof Error && error.message.toLowerCase().includes('user rejected')) {
+        toast.error('トランザクションがキャンセルされました');
+      } else {
+        toast.error('送信に失敗しました');
+      }
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!isConnected) {
-      if (connectors[0]) {
-        setShouldSubmit(true);
-        connect({ connector: connectors[0] });
-      }
-      return;
-    }
-
-    await loadConfig(walletClient!, account!);
-    await handleSubmitInternal();
   };
 
   return (
@@ -117,8 +118,10 @@ export const ThrowForm = () => {
           placeholder="海に流すメッセージを入力してください..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          maxLength={MAX_DESCRIPTION_LENGTH}
           disabled={isLoading || isUploading}
         />
+        <p className="text-right text-sm text-gray-400">{message.length} / {MAX_DESCRIPTION_LENGTH}</p>
       </div>
 
       <ImageUploader

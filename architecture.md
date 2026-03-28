@@ -525,7 +525,29 @@ Bottle 表示時は `tokenUri` を解決して metadata JSON を取得する。
   - `.nojekyll` を生成して GitHub Pages の特殊処理を無効化
 - GitHub リポジトリの Settings > Pages で `gh-pages` ブランチ・`/ (root)` を指定
 
-## 2. スマートコントラクト
+## 2. 開発環境（WSL）
+
+`npm install` は実行環境のプラットフォーム向けバイナリをインストールする。Windows 側（PowerShell/CMD）でインストールすると `lightningcss` などのネイティブモジュールが Windows 向けになり、WSL で `npm run dev` を実行したときに以下のエラーが出る。
+
+```
+Error: Cannot find module '../lightningcss.linux-x64-gnu.node'
+```
+
+WSL で開発する場合は **WSL 内で** `npm install` を実行すること。
+
+```bash
+# Windows 側（PowerShell/CMD）から呼び出す場合
+wsl.exe -e bash -c "cd /mnt/c/Users/tsukasa/Documents/Echoes_in_the_Tide/frontend && npm install"
+
+# または WSL ターミナルで直接実行
+cd /mnt/c/Users/tsukasa/Documents/Echoes_in_the_Tide/frontend
+npm install
+npm run dev
+```
+
+node_modules を Windows 側で作ってしまった場合は `rm -rf node_modules package-lock.json` して WSL 側で `npm install` し直す。
+
+## 3. スマートコントラクト
 
 ```bash
 forge script script/Deploy.s.sol --rpc-url amoy --broadcast --verify -vvvv
