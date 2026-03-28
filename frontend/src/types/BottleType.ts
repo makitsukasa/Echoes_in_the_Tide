@@ -8,7 +8,7 @@ export interface BottleGraphData {
 }
 
 /**
- * IPFSから取得するボトルのメタデータ
+ * IPFSから取得するボトルのメタデータ（全フィールド任意）
  */
 export interface BottleMetadata {
   name?: string;
@@ -16,6 +16,15 @@ export interface BottleMetadata {
   message?: string;
   image?: string;
   html?: string;
+}
+
+/**
+ * Filebaseにアップロードするメタデータ（name・descriptionは必須）
+ */
+export interface BottleUploadMetadata {
+  name: string;
+  description: string;
+  image: string | null;
 }
 
 /**

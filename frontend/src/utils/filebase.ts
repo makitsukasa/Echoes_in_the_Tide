@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { BottleMetadata } from '../types/contract';
+import { BottleUploadMetadata } from '../types/BottleType';
 
 interface FilebaseConfig {
   apiKey: string;
@@ -36,7 +36,7 @@ export const uploadImageToFilebase = async (file: File, config: FilebaseConfig):
   }
 };
 
-export const uploadMetadataToFilebase = async (metadata: BottleMetadata, config: FilebaseConfig): Promise<string> => {
+export const uploadMetadataToFilebase = async (metadata: BottleUploadMetadata, config: FilebaseConfig): Promise<string> => {
   try {
     // メタデータをBlobに変換
     const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });

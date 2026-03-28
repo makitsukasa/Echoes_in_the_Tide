@@ -5,7 +5,7 @@ import { ImageUploader } from './ImageUploader';
 import { useThrowBottle } from '../../hooks/useThrowBottle';
 import { uploadImageToFilebase, uploadMetadataToFilebase } from '../../utils/filebase';
 import { useBottleStore } from '../../stores/useBottleStore';
-import { BottleMetadata } from '../../types/contract';
+import { BottleUploadMetadata } from '../../types/BottleType';
 import { useAccount } from 'wagmi';
 import { Base64 } from 'js-base64';
 
@@ -67,7 +67,7 @@ export const ThrowForm = () => {
     try {
       setIsUploading(true);
       let uri: string;
-      const metadata: BottleMetadata = {
+      const metadata: BottleUploadMetadata = {
         name: 'Echoes in the Tide',
         description: message,
         image: '',
