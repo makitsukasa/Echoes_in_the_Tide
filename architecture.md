@@ -61,19 +61,21 @@ export interface Bottle {
   description?: string
   image?: string
   date: string           // claimedAt を ja-JP でフォーマットしたもの
-  status: string         // 表示用文字列（例: '所有中'）
+  status: string         // 表示用文字列。海にある状態='漂流中'(AT_OCEAN)、拾われた状態='所有中'(CLAIMED)
   timestamp: string      // claimedAt を ja-JP ロケールでフォーマットしたもの
 }
 ```
 
 ## 2. 状態定義
 
-### 海にある状態（AT_OCEAN 相当）
+コード上の enum 定義はなく、サブグラフのエンティティと表示文字列で区別する。
+
+### 海にある状態（AT_OCEAN）— 表示: `'漂流中'`
 - サブグラフの `driftingBottles` に含まれる
 - 海画面の候補になりうる
 - claim 可能
 
-### 拾われた状態（CLAIMED 相当）
+### 拾われた状態（CLAIMED）— 表示: `'所有中'`
 - サブグラフの `bottleClaimeds` に記録される
 - 海画面には出さない
 - mybottles の一覧対象になりうる
@@ -293,7 +295,7 @@ Filebase API キーをブラウザローカルに暗号化保存する
 - 任意でサムネイル
 
 ### 空状態
-- 接続済みかつ 0 件: `まだ拾った小瓶はありません`
+- 接続済みかつ 0 件: `まだ小瓶を拾っていません`
 - 未接続: `ウォレットを接続すると拾った小瓶を見られます`
 
 ## 5. setting 画面
