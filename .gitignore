@@ -1,4 +1,6 @@
 image/
+tmp/
 bk_*/
 repomix*
 *.lnk
+.claude/settings.local.json
