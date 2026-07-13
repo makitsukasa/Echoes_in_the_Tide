@@ -2,7 +2,7 @@ import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
-import { polygonAmoy } from 'viem/chains';
+import { polygon } from 'viem/chains';
 import { wagmiConfig } from '../../utils/wagmi';
 
 function WalletConnectButtonInner() {
@@ -22,13 +22,13 @@ function WalletConnectButtonInner() {
     }
   }, [connectError]);
 
-  // 接続後にチェーンが違う場合は自動で Amoy に切り替える
+  // 接続後にチェーンが違う場合は自動で Polygon に切り替える
   useEffect(() => {
-    if (!isConnected || !accountChainId || accountChainId === polygonAmoy.id || status !== 'connected') return;
-    switchChain({ chainId: polygonAmoy.id });
+    if (!isConnected || !accountChainId || accountChainId === polygon.id || status !== 'connected') return;
+    switchChain({ chainId: polygon.id });
   }, [isConnected, accountChainId, status, switchChain]);
 
-  // WalletConnect セッションの namespace に polygonAmoy が含まれているか確認
+  // WalletConnect セッションの namespace に polygon が含まれているか確認
   useEffect(() => {
     if (!isConnected || connector?.id !== 'walletConnect') return;
 
@@ -37,9 +37,9 @@ function WalletConnectButtonInner() {
     (wcConnector as { getProvider: () => Promise<unknown> }).getProvider().then((provider: unknown) => {
       const p = provider as { session?: { namespaces?: { eip155?: { chains?: string[] } } } };
       const sessionChains = p?.session?.namespaces?.eip155?.chains ?? [];
-      if (!sessionChains.includes(`eip155:${polygonAmoy.id}`)) {
+      if (!sessionChains.includes(`eip155:${polygon.id}`)) {
         disconnect();
-        toast.error('セッションに Polygon Amoy が含まれていません。Polygon Amoy をアクティブにして再接続してください');
+        toast.error('セッションに Polygon が含まれていません。Polygon をアクティブにして再接続してください');
       }
     }).catch(console.error);
   }, [isConnected, connector, disconnect]);
@@ -47,7 +47,7 @@ function WalletConnectButtonInner() {
   if (!mounted) return null;
 
   const isConnecting = status === 'connecting';
-  const isWrongChain = isConnected && accountChainId !== polygonAmoy.id;
+  const isWrongChain = isConnected && accountChainId !== polygon.id;
   const isWalletConnect = connector?.id === 'walletConnect';
 
   const metaMask = connectors.find(c => c.type === 'injected' && c.name === 'MetaMask');
@@ -60,16 +60,16 @@ function WalletConnectButtonInner() {
           <button
             onClick={() => {
               switchChain(
-                { chainId: polygonAmoy.id },
+                { chainId: polygon.id },
                 {
                   onSuccess: () => {
-                    toast.success('Polygon Amoy に切り替えました');
+                    toast.success('Polygon に切り替えました');
                   },
                   onError: () => {
                     if (isWalletConnect) {
-                      toast.error('切り替えに失敗しました。切断して Polygon Amoy をアクティブにしてから再接続してください');
+                      toast.error('切り替えに失敗しました。切断して Polygon をアクティブにしてから再接続してください');
                     } else {
-                      toast.error('Polygon Amoy への切り替えに失敗しました。ウォレット側で切り替えてください');
+                      toast.error('Polygon への切り替えに失敗しました。ウォレット側で切り替えてください');
                     }
                   },
                 }
@@ -77,7 +77,7 @@ function WalletConnectButtonInner() {
             }}
             className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
           >
-            Polygon Amoyに切り替える
+            Polygonに切り替える
           </button>
           <button
             onClick={() => disconnect()}
@@ -123,7 +123,7 @@ function WalletConnectButtonInner() {
       </div>
       {walletConnect && (
         <p className="text-xs text-gray-500">
-          WalletConnect: QRコードを読む前に Polygon Amoy をアクティブにしてください
+          WalletConnect: QRコードを読む前に Polygon をアクティブにしてください
         </p>
       )}
     </div>

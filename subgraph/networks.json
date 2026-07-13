@@ -1,8 +1,14 @@
 {
   "polygon-amoy": {
     "Ocean": {
-      "address": "0xe485AA85E4745626e917cEFEeD7dDCEEdb1eb2F5",
+      "address": "0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422",
       "startBlock": 20827227
+    }
+  },
+  "matic": {
+    "Ocean": {
+      "address": "0x8A8fBCf8134fc217314e251700636d09855c5700",
+      "startBlock": 90130496
     }
   }
 }

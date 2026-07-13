@@ -9,7 +9,7 @@ export default function AppInfo() {
         </div>
         <div>
           <dt className="text-sm font-medium text-gray-500">ネットワーク</dt>
-          <dd className="mt-1 text-sm text-gray-900">Polygon Amoy Testnet</dd>
+          <dd className="mt-1 text-sm text-gray-900">Polygon Mainnet</dd>
         </div>
       </dl>
     </div>

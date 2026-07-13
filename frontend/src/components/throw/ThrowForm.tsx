@@ -94,7 +94,7 @@ export const ThrowForm = () => {
     } catch (error) {
       console.error('[ThrowForm] 送信エラー:', error);
       if (error instanceof Error && error.message.includes('Chain not configured')) {
-        toast.error('ウォレットに Polygon Amoy ネットワークを追加してから接続し直してください（チェーンID: 80002）');
+        toast.error('ウォレットに Polygon ネットワークを追加してから接続し直してください（チェーンID: 137）');
       } else if (error instanceof Error && error.message.toLowerCase().includes('user rejected')) {
         toast.error('トランザクションがキャンセルされました');
       } else {

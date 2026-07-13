@@ -1,13 +1,13 @@
-import { polygonAmoy } from 'viem/chains';
+import { polygon } from 'viem/chains';
 import { walletConnect, injected } from 'wagmi/connectors';
 import { createConfig, http } from 'wagmi';
 
 const projectId = 'a1375d06956bdf6f3658945bc76a989f';
 
 export const wagmiConfig = createConfig({
-  chains: [polygonAmoy],
+  chains: [polygon],
   transports: {
-    [polygonAmoy.id]: http(),
+    [polygon.id]: http(),
   },
   connectors: [
     injected({

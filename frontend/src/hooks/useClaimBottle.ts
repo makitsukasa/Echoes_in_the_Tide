@@ -20,7 +20,7 @@ export const useClaimBottle = () => {
       if (err instanceof Error && err.message.includes('Not drifting in the ocean')) {
         toast.error('すでに誰かに拾われました');
       } else if (err instanceof Error && err.message.includes('Chain not configured')) {
-        toast.error('Polygon Amoy に切り替えてから接続し直してください');
+        toast.error('Polygon に切り替えてから接続し直してください');
       } else if (err instanceof Error && err.message.toLowerCase().includes('user rejected')) {
         toast.error('トランザクションがキャンセルされました');
       } else {

@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Ocean
-    network: polygon-amoy
+    network: matic
     source:
-      address: "0xA01f4A6b456122e1e745d113e61aaBe1AbEfB422"
+      address: "0x8A8fBCf8134fc217314e251700636d09855c5700"
       abi: Ocean
-      startBlock: 20827227
+      startBlock: 90130496
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
