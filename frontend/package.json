@@ -13,10 +13,10 @@
     "@reown/appkit": "^1.7.7",
     "@reown/appkit-adapter-wagmi": "^1.7.7",
     "@tanstack/react-query": "^5.77.1",
-    "axios": "^1.17.0",
+    "axios": "^1.18.0",
     "crypto-js": "^4.2.0",
     "js-base64": "^3.7.7",
-    "next": "^15.5.18",
+    "next": "^15.5.21",
     "porto": "^0.2.37",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -38,6 +38,12 @@
     "typescript": "^5"
   },
   "overrides": {
-    "hono": "^4.7.2"
+    "axios": "^1.18.0",
+    "hono": "^4.12.34",
+    "postcss": "^8.5.23",
+    "sharp": "^0.35.0",
+    "ws@8.18.0": "^8.21.0",
+    "uuid@^8.3.2": "^11.1.1",
+    "uuid@^9.0.1": "^11.1.1"
   }
 }
