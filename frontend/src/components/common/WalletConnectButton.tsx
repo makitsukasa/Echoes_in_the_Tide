@@ -12,7 +12,11 @@ function WalletConnectButtonInner() {
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
 
+  // ハイドレーション不一致を避けるためのマウント判定。
+  // このコンポーネントは dynamic(..., { ssr: false }) で包まれているので
+  // 理屈上は冗長だが、ウォレット接続まわりの初回描画に影響するため据え置く。
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
