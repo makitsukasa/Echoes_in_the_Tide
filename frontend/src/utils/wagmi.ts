@@ -27,16 +27,29 @@ export const wagmiConfig = createConfig({
   ],
 });
 
+// wagmi が公開している Connector 型には getProvider / switchChain の
+// 具体的なシグネチャが無いため、パッチに必要な部分だけを構造的に宣言する。
+interface WalletConnectProvider {
+  chainId?: number;
+}
+
+interface PatchableWalletConnectConnector {
+  getProvider: (params?: { chainId?: number }) => Promise<WalletConnectProvider>;
+  switchChain?: (params: { chainId: number }) => Promise<unknown>;
+}
+
 // WalletConnect コネクタの getProvider は呼び出すたびに switchChain を試みる。
 // すでに正しいチェーンにいる場合はスキップし、不要なチェーン切り替えエラーを防ぐ。
 if (typeof window !== 'undefined') {
-  const wcConnector = wagmiConfig.connectors.find(c => c.id === 'walletConnect') as any;
+  const wcConnector = wagmiConfig.connectors.find(c => c.id === 'walletConnect') as unknown as
+    | PatchableWalletConnectConnector
+    | undefined;
   if (wcConnector && typeof wcConnector.getProvider === 'function') {
-    const origGetProvider = (wcConnector.getProvider as Function).bind(wcConnector);
+    const origGetProvider = wcConnector.getProvider.bind(wcConnector);
     wcConnector.getProvider = async ({ chainId }: { chainId?: number } = {}) => {
       // まずチェーン切り替えなしでプロバイダを取得
       const provider = await origGetProvider();
-      const providerChainId = (provider as any)?.chainId;
+      const providerChainId = provider?.chainId;
       // プロバイダが既に目的のチェーンにいる場合はスキップ
       if (chainId && providerChainId !== chainId) {
         await wcConnector.switchChain?.({ chainId }).catch((e: unknown) => {

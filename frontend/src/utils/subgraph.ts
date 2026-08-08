@@ -15,9 +15,30 @@ function ipfsToHttp(url: string | undefined | null): string | undefined {
   return url?.replace(/^ipfs:\/\//, 'https://ipfs.io/ipfs/');
 }
 
+/** IPFS / data URI から取得する生のメタデータ。外部データなので全フィールド任意 */
+interface RawBottleMetadata {
+  name?: string;
+  description?: string;
+  message?: string;
+  image?: string;
+  animation_url?: string;
+}
+
+/** bottleClaimeds クエリの 1 件 */
+interface ClaimedGraphData {
+  tokenId: string;
+  blockTimestamp: string;
+}
+
+/** bottleMinteds クエリの 1 件 */
+interface MintedGraphData {
+  tokenId: string;
+  tokenURI: string;
+}
+
 async function fetchBottleMetadata(tokenURI: string): Promise<BottleMetadata> {
   try {
-    let data: any;
+    let data: RawBottleMetadata;
     if (tokenURI.startsWith('data:application/json;base64,')) {
       const base64 = tokenURI.slice('data:application/json;base64,'.length);
       const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
@@ -69,10 +90,13 @@ export async function fetchUserClaimedBottles(userAddress: string): Promise<Bott
     }`;
 
   const res = await axios.post(SUBGRAPH_URL, { query });
-  const { bottleClaimeds, bottleMinteds } = res.data?.data ?? { bottleClaimeds: [], bottleMinteds: [] };
+  const { bottleClaimeds, bottleMinteds } = (res.data?.data ?? {
+    bottleClaimeds: [],
+    bottleMinteds: [],
+  }) as { bottleClaimeds: ClaimedGraphData[]; bottleMinteds: MintedGraphData[] };
 
-  return Promise.all(bottleClaimeds.map(async (claimed: any) => {
-    const minted = bottleMinteds.find((m: any) => m.tokenId === claimed.tokenId);
+  return Promise.all(bottleClaimeds.map(async (claimed) => {
+    const minted = bottleMinteds.find((m) => m.tokenId === claimed.tokenId);
     if (!minted) return null;
 
     const metadata = await fetchBottleMetadata(minted.tokenURI);
