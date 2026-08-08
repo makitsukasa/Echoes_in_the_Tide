@@ -17,6 +17,13 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
 
+    # このジョブは PR のコードを checkout しないため作業ディレクトリに .git が無い。
+    # gh は対象リポジトリを git remote から推測しようとして失敗するので、
+    # GH_REPO で明示する。
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+
     steps:
       - name: Fetch Dependabot metadata
         id: meta
@@ -27,7 +34,6 @@ jobs:
       - name: Wait for build to succeed
         if: steps.meta.outputs.update-type != 'version-update:semver-major'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           # `gh pr checks --watch` は使わない。この workflow 自身も PR の
@@ -50,7 +56,6 @@ jobs:
       - name: Merge
         if: steps.meta.outputs.update-type != 'version-update:semver-major'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge "$PR_URL" --squash --delete-branch
 
@@ -60,14 +65,11 @@ jobs:
         # マージ後の Deploy は明示的に dispatch する。
         # これが無いとマージされてもサイトが更新されない。
         if: steps.meta.outputs.update-type != 'version-update:semver-major'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run deploy.yml --ref main
 
       - name: Leave a note on major updates
         if: steps.meta.outputs.update-type == 'version-update:semver-major'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
           gh pr comment "$PR_URL" --body \
