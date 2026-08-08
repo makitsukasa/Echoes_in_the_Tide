@@ -3,8 +3,44 @@ updates:
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "daily"
-    allow:
-      - dependency-type: "direct"
-    security-updates-only: false
+      interval: "weekly"
+      day: "monday"
+
+    # allow は意図的に指定しない。
+    #   指定なし -> version updates: 直接依存すべて
+    #               security updates: 間接依存を含むすべて
+    # 以前は allow: [dependency-type: "direct"] を指定していたが、これは
+    # security updates まで直接依存に絞ってしまうため、間接依存
+    # (postcss / sharp / ws / uuid など) のアラートが一切 PR にならず
+    # 29 件滞留する原因になっていた。
+
+    # 出たばかりのバージョンには飛びつかない。
+    # cooldown は version updates にのみ効き、security updates は素通りする。
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+
+    groups:
+      npm-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"

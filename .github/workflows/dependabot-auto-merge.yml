@@ -1,0 +1,74 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request_target:
+    branches: [ main ]
+
+# pull_request_target は base ブランチの文脈で実行され、書き込み可能な
+# トークンを持つ。PR 側のコードは絶対に checkout しないこと
+# （checkout すると第三者のコードを書き込み権限付きで実行することになる）。
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for build to succeed
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # `gh pr checks --watch` は使わない。この workflow 自身も PR の
+          # チェックとして並ぶため、自分の完了を待って deadlock する。
+          # Deploy workflow のジョブ (build-and-deploy) だけを名指しで見る。
+          for _ in $(seq 1 60); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/check-runs" \
+              --jq '.check_runs[] | select(.name == "build-and-deploy")
+                    | "\(.status):\(.conclusion)"' | head -n 1)
+            case "$state" in
+              completed:success) echo "build passed"; exit 0 ;;
+              completed:*)       echo "build failed ($state)"; exit 1 ;;
+              *)                 echo "waiting... (${state:-not started})" ;;
+            esac
+            sleep 20
+          done
+          echo "timed out waiting for build-and-deploy"
+          exit 1
+
+      - name: Merge
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --squash --delete-branch
+
+      - name: Trigger deploy
+        # GITHUB_TOKEN による push は workflow を起動しない。
+        # workflow_dispatch と repository_dispatch だけがこの制限の例外なので、
+        # マージ後の Deploy は明示的に dispatch する。
+        # これが無いとマージされてもサイトが更新されない。
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
+
+      - name: Leave a note on major updates
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment "$PR_URL" --body \
+            'メジャー更新のため自動マージをスキップしました。手動で確認してください。'

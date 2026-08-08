@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [ main ]
     paths: [ 'frontend/**', '.github/workflows/deploy.yml' ]
+  # Dependabot PR の自動マージ後に dependabot-auto-merge.yml から起動される。
+  # GITHUB_TOKEN による push は workflow を起動しないため、この入口が必要。
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
