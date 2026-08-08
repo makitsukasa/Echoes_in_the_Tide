@@ -10,20 +10,20 @@
     "export": "next export"
   },
   "dependencies": {
-    "@reown/appkit": "^1.7.7",
-    "@reown/appkit-adapter-wagmi": "^1.7.7",
-    "@tanstack/react-query": "^5.77.1",
+    "@reown/appkit": "^1.8.23",
+    "@reown/appkit-adapter-wagmi": "^1.8.23",
+    "@tanstack/react-query": "^5.101.4",
     "axios": "^1.18.0",
     "crypto-js": "^4.2.0",
-    "js-base64": "^3.7.7",
+    "js-base64": "^3.9.2",
     "next": "^15.5.21",
     "porto": "^0.2.37",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sonner": "^2.0.3",
-    "viem": "^2.30.1",
+    "viem": "^2.55.10",
     "wagmi": "^2.15.4",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -32,8 +32,8 @@
     "@types/node": "^20",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^10.0.3",
-    "eslint-config-next": "^16.1.6",
+    "eslint": "^10.8.0",
+    "eslint-config-next": "^16.2.12",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
