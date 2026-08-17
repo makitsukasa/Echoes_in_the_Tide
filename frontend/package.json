@@ -19,7 +19,7 @@
     "react-dom": "^19.2.7",
     "sonner": "^2.0.8",
     "viem": "^2.55.13",
-    "wagmi": "^2.15.4",
+    "wagmi": "^3.7.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
